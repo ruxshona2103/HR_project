@@ -31,7 +31,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="HR API",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email=os.getenv("EMAIL")),
+        contact=openapi.Contact(name="HR Project Support", email=os.getenv("EMAIL")),
         license=openapi.License(name="BSD Licence"),
     ),
     public=True,
@@ -44,7 +44,9 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')),
+    # path('api/users/', include('users.urls')),
+    # Rezyume ilovasi uchun yo'l
+    path('api/resume/', include('resumes.urls')),
 
     # path('api/v1/auth/', include("djoser.urls")),
     # path('api/v1/auth/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
