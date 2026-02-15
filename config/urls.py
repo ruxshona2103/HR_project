@@ -11,14 +11,14 @@ load_dotenv()
 
 class JWTSchemaGenerator(OpenAPISchemaGenerator):
     def get_security_definitions(self):
-        security_definitions = super().get_security_definitions()
-        security_definitions['Bearer'] = {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
+        return {
+            'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header',
+                'description': "Tokenni quyidagi formatda kiriting: 'Bearer <sizning_tokeningiz>'"
+            }
         }
-        return security_definitions
-
 
 schema_view = get_schema_view(
     openapi.Info(
