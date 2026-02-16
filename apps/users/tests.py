@@ -144,7 +144,6 @@ class BruteForceTestCase(TestCase):
                 'code': '000000'
             }, format='json')
 
-
         self.client.post(self.url, {
             'phone_number': self.phone,
             'code': '123456'
