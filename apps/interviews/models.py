@@ -17,8 +17,8 @@ class Position(models.Model):
 
 class Question(models.Model):
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
-    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES)
-    difficulty_level = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES)
+    question_type = models.CharField(max_length=20)
+    difficulty_level = models.CharField(max_length=20)
     expected_keywords = models.JSONField(default=list, blank=True)
     ai_evaluation_criteria = models.JSONField(default=dict, blank=True)
     is_ai_generated = models.BooleanField(default=False)
@@ -33,13 +33,12 @@ class Question(models.Model):
 class Interview(models.Model):
     candidate = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     scheduled_at = models.DateTimeField(blank=True, null=True)
     started_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
     total_score = models.FloatField(blank=True, null=True)
     ai_feedback = models.TextField(blank=True)
-    final_recommendation = models.CharField(max_length=20, choices=RECOMMENDATION_CHOICES, blank=True)
+    final_recommendation = models.CharField(max_length=20, blank=True)
     conducted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -86,7 +85,7 @@ class InterviewFeedback(models.Model):
 
 class AIPromptTemplate(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    template_type = models.CharField(max_length=30, choices=TEMPLATE_TYPE_CHOICES)
+    template_type = models.CharField(max_length=30)
     variables = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
