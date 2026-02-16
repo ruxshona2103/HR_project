@@ -24,6 +24,7 @@ def get_tokens_for_user(user):
 
 class BotLinkView(APIView):
     """Botni linkimi qaytaradi"""
+
     @swagger_auto_schema(
         operation_summary="Telegram bot linki",
         operation_description="Telegram bot linkini qaytaradi",
@@ -42,6 +43,7 @@ class BotLinkView(APIView):
 class VerifyOTPView(APIView):
     """OTP kodni tekshoradi va JWT qaytaradi"""
     throttle_classes = [OTPRequestThrottle]
+
     @swagger_auto_schema(
         operation_summary="sign up & sign in qilish",
         operation_description="OTP kodni tekshiradi va JWT token qaytaradi",
@@ -81,7 +83,7 @@ class VerifyOTPView(APIView):
             attempt.add_attempt()
             return Response(
                 {"error": "Kod muddati tugagan. Qaytadan urinib ko'ring"},
-                      status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST)
 
         """agar kod to'g'ri bo'lsa attemptni 0 is_used ni True qilamiz"""
         attempt.reset()
@@ -109,11 +111,12 @@ class VerifyOTPView(APIView):
                 'nmae': user.name,
             }
         },
-        status=status.HTTP_200_OK)
+            status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
     """Chiqib ketish"""
+
     @swagger_auto_schema(
         operation_summary="logout qilish",
         operation_description="Refresh tokenni blacklistga soladi",
@@ -135,7 +138,7 @@ class LogoutView(APIView):
         except Exception:
             return Response(
                 {'error': "Token noto'g'ri"},
-            status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 
