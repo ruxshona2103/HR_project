@@ -116,8 +116,6 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ).order_by('-created_at').first()
     )()
 
-
-
     if existing_otp and not existing_otp.is_expired():
         remaining = max(0, int(60 - (timezone.now() - existing_otp.created_at).total_seconds()))
         await update.message.reply_text(

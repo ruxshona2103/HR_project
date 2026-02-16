@@ -1,6 +1,7 @@
 from rest_framework.throttling import AnonRateThrottle
 from django.conf import settings
 
+
 class OTPRequestThrottle(AnonRateThrottle):
     scope = 'otp_request'
 
