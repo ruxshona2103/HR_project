@@ -8,7 +8,11 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-me")
 DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
 
+<<<<<<< HEAD
 # ─── APPLICATIONS ───────────────────────────────────────────────────────────
+=======
+# ─── APPLICATIONS ────────────────────────────────────────────────────────────
+>>>>>>> main
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -24,17 +28,33 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_spectacular",
+<<<<<<< HEAD
 ]
 
 LOCAL_APPS = [
     "accounts",
+=======
+    "drf_yasg",
+]
+
+LOCAL_APPS = [
+    "apps.accounts",    # ← o'zgartiring
+    "apps.users",
+    "apps.interviews",
+>>>>>>> main
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+<<<<<<< HEAD
 # ─── MIDDLEWARE ──────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",          # ← eng yuqorida bo'lishi shart
+=======
+# ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+>>>>>>> main
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -64,8 +84,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+<<<<<<< HEAD
 # ─── DATABASE ────────────────────────────────────────────────────────────────
 # Hozircha SQLite, keyin USE_POSTGRES=True qilib PostgreSQL ga o'ting
+=======
+# ─── DATABASE ─────────────────────────────────────────────────────────────────
+>>>>>>> main
 if config("USE_POSTGRES", default=False, cast=bool):
     DATABASES = {
         "default": {
@@ -85,10 +109,17 @@ else:
         }
     }
 
+<<<<<<< HEAD
 # ─── CUSTOM USER MODEL ───────────────────────────────────────────────────────
 AUTH_USER_MODEL = "accounts.User"
 
 # ─── PASSWORD VALIDATION ─────────────────────────────────────────────────────
+=======
+# ─── CUSTOM USER MODEL ────────────────────────────────────────────────────────
+AUTH_USER_MODEL = "accounts.User"  # ← shu bo'lishi kerak
+
+# ─── PASSWORD VALIDATION ──────────────────────────────────────────────────────
+>>>>>>> main
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -97,13 +128,21 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+<<<<<<< HEAD
 # ─── INTERNATIONALIZATION ────────────────────────────────────────────────────
+=======
+# ─── INTERNATIONALIZATION ─────────────────────────────────────────────────────
+>>>>>>> main
 LANGUAGE_CODE = "uz"
 TIME_ZONE = "Asia/Tashkent"
 USE_I18N = True
 USE_TZ = True
 
+<<<<<<< HEAD
 # ─── STATIC & MEDIA ──────────────────────────────────────────────────────────
+=======
+# ─── STATIC & MEDIA ───────────────────────────────────────────────────────────
+>>>>>>> main
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
@@ -111,7 +150,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+<<<<<<< HEAD
 # ─── DJANGO REST FRAMEWORK ───────────────────────────────────────────────────
+=======
+# ─── DJANGO REST FRAMEWORK ────────────────────────────────────────────────────
+>>>>>>> main
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -124,9 +167,24 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ),
     "NON_FIELD_ERRORS_KEY": "error",
+<<<<<<< HEAD
 }
 
 # ─── JWT ─────────────────────────────────────────────────────────────────────
+=======
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",
+        "user": "1000/day",
+        "otp_request": "5/minute",
+    },
+}
+
+# ─── JWT ──────────────────────────────────────────────────────────────────────
+>>>>>>> main
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -139,6 +197,7 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
+<<<<<<< HEAD
 # ─── CORS ────────────────────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Development da True, Production da False
 
@@ -146,6 +205,10 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # Development da True, Production da False
 # CORS_ALLOWED_ORIGINS = [
 #     "https://your-frontend.com",
 # ]
+=======
+# ─── CORS ─────────────────────────────────────────────────────────────────────
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+>>>>>>> main
 
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -155,7 +218,11 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
+<<<<<<< HEAD
 # ─── SWAGGER (drf-spectacular) ───────────────────────────────────────────────
+=======
+# ─── SWAGGER (drf-spectacular) ────────────────────────────────────────────────
+>>>>>>> main
 SPECTACULAR_SETTINGS = {
     "TITLE": "HR Loyiha API",
     "DESCRIPTION": "HR tizimi uchun REST API dokumentatsiyasi",
@@ -163,6 +230,17 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SWAGGER_UI_SETTINGS": {
+<<<<<<< HEAD
         "persistAuthorization": True,   # token saqlansin
     },
 }
+=======
+        "persistAuthorization": True,
+    },
+}
+
+# ─── TELEGRAM BOT ─────────────────────────────────────────────────────────────
+TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN", default="")
+
+TESTING = False
+>>>>>>> main
