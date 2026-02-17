@@ -22,40 +22,36 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    """
-    Custom User Model
-    - username yo'q, email = asosiy identifikator
-    - phone_number ixtiyoriy (telefon qism boshqa developer qiladi)
-    """
-
     email = models.EmailField(
         unique=True,
         verbose_name="Email manzil",
         error_messages={"unique": "Bu email allaqachon ro'yxatdan o'tgan."},
     )
-    first_name = models.CharField(
-        max_length=150,
-        blank=True,
-        verbose_name="Ism",
-    )
-    last_name = models.CharField(
-        max_length=150,
-        blank=True,
-        verbose_name="Familiya",
-    )
+    first_name = models.CharField(max_length=150, blank=True, verbose_name="Ism")
+    last_name = models.CharField(max_length=150, blank=True, verbose_name="Familiya")
     phone_number = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        unique=True,
+        max_length=20, blank=True, null=True, unique=True,
         verbose_name="Telefon raqam",
         help_text="Ixtiyoriy. Masalan: +998901234567",
         error_messages={"unique": "Bu telefon raqam allaqachon ro'yxatdan o'tgan."},
     )
-
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     is_staff = models.BooleanField(default=False, verbose_name="Staff")
     date_joined = models.DateTimeField(default=timezone.now, verbose_name="Ro'yxatdan o'tgan sana")
+
+    # ← BU IKKI QATOR ASOSIY FIX!
+    groups = models.ManyToManyField(
+        "auth.Group",
+        blank=True,
+        related_name="accounts_users",  # ← unique nom
+        verbose_name="Guruhlar",
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        blank=True,
+        related_name="accounts_users",  # ← unique nom
+        verbose_name="Ruxsatlar",
+    )
 
     objects = UserManager()
 

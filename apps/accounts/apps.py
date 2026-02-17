@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
-
 class AccountsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "accounts"
+    name = "apps.accounts"
+    label = "accounts"  # ← shu qatorni qo'shing!
     verbose_name = "Foydalanuvchilar"
