@@ -25,9 +25,18 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    #  foydalanuvchini rollarga bo'lish(talaba, ish beruvchi)
+    ROLE_CHOICES = (
+        ('candidate', 'Ish qidiruvchi'),
+        ('employer', 'Ish beruvchi'),
+    )
+
     phone_number = models.CharField(max_length=13, unique=True, validators=[phone_regex])
     name = models.CharField(max_length=50, blank=True)
     chat_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, null=True, blank=True)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

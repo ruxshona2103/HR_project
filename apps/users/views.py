@@ -108,7 +108,8 @@ class VerifyOTPView(APIView):
             'tokens': tokens,
             'user': {
                 'phone_number': user.phone_number,
-                'nmae': user.name,
+                'name': user.name,
+                'role': user.role,
             }
         },
             status=status.HTTP_200_OK)
@@ -167,3 +168,48 @@ class MeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChooseRoleView(APIView):
+    """Foydalanuvchi birinchi marta rol tanlashi uchun API"""
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Rol tanlash",
+        operation_description="Foydalanuvchi 'candidate' yoki 'employer' rolidan birini tanlaydi. Rol bir marta tanlanadi.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['role'],
+            properties={
+                'role': openapi.Schema(type=openapi.TYPE_STRING, enum=['candidate', 'employer'])
+            }
+        ),
+        responses={200: openapi.Response('Muvaffaqiyatli'), 400: "Xato"}
+    )
+    def post(self, request):
+        user = request.user
+
+        # 1. Tekshiruv: Rol allaqachon tanlanganmi?
+        if user.role:
+            return Response(
+                {"error": "Siz allaqachon rol tanlagansiz!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        role = request.data.get('role')
+
+        # 2. Validatsiya
+        if role not in ['candidate', 'employer']:
+            return Response(
+                {"error": "Noto'g'ri rol. 'candidate' yoki 'employer' yuboring."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 3. Saqlash
+        user.role = role
+        user.save()
+
+        return Response({
+            "message": f"Siz muvaffaqiyatli {role} rolini tanladingiz.",
+            "role": user.role
+        }, status=status.HTTP_200_OK)
