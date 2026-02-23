@@ -1,3 +1,4 @@
+
 from django.contrib import admin
 from django.urls import path, include, re_path
 from drf_yasg import openapi
@@ -37,7 +38,11 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('apps.users.urls')),
+<<<<<<< HEAD
     path('api/', include('apps.user_profile.urls')),
+=======
+    path('api/vacancies/', include('apps.vacancies.urls')),
+>>>>>>> 74fa1444b2caf21a988396fce0d531d248c30a2a
 
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
