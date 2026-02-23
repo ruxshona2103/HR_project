@@ -8,8 +8,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from .models import OTPCode, OTPAttempt, User, UserProfile, CandidateProfile
-from .serializers import VerifyOTPSerializer, UserSerializer, UserProfileSerializer, CandidateProfileSerializer
+from .models import OTPCode, OTPAttempt, User
+from .serializers import VerifyOTPSerializer, UserSerializer
 from .throttling import OTPRequestThrottle
 
 
@@ -168,11 +168,3 @@ class MeView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class UserProfileViewSet(viewsets.ModelViewSet):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-
-
-class CandidateProfileViewSet(viewsets.ModelViewSet):
-    queryset = CandidateProfile.objects.all()
-    serializer_class = CandidateProfileSerializer

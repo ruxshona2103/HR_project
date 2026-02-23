@@ -1,14 +1,17 @@
 from django.db import models
-from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     birth_date = models.DateField()
     phone_number = models.CharField(max_length=15)
-    text = models.TextField()
+    university_name = models.CharField(max_length=255, null=True, blank=True)
+    degree = models.CharField(max_length=100, blank=True, null=True)
+    course = models.PositiveSmallIntegerField(blank=True, null=True)
+    field_of_study = models.CharField(max_length=255, null=True, blank=True)
+    start_year = models.PositiveIntegerField(blank=True, null=True)
+    end_year = models.PositiveIntegerField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
 
