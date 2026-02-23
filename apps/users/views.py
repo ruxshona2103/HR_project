@@ -3,13 +3,13 @@ from email.policy import default
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from .models import OTPCode, OTPAttempt, User
-from .serializers import VerifyOTPSerializer, UserSerializer
+from .models import OTPCode, OTPAttempt, User, UserProfile, CandidateProfile
+from .serializers import VerifyOTPSerializer, UserSerializer, UserProfileSerializer, CandidateProfileSerializer
 from .throttling import OTPRequestThrottle
 
 
@@ -167,3 +167,12 @@ class MeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
+
+class CandidateProfileViewSet(viewsets.ModelViewSet):
+    queryset = CandidateProfile.objects.all()
+    serializer_class = CandidateProfileSerializer
