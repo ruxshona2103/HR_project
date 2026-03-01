@@ -1,20 +1,23 @@
 import os
-from email.policy import default
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, inline_serializer
+from rest_framework import serializers as s
 from .models import OTPCode, OTPAttempt, User
 from .serializers import VerifyOTPSerializer, UserSerializer
 from .throttling import OTPRequestThrottle
+from rest_framework_simplejwt.views import TokenRefreshView
 
+
+class OTPTokenRefreshView(TokenRefreshView):
+    @extend_schema(tags=["OTP Auth"], summary="OTP Auth — Token yangilash")
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 def get_tokens_for_user(user):
-    """Userga tokenlar beradi"""
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),
@@ -23,17 +26,14 @@ def get_tokens_for_user(user):
 
 
 class BotLinkView(APIView):
-    """Botni linkimi qaytaradi"""
 
-    @swagger_auto_schema(
-        operation_summary="Telegram bot linki",
-        operation_description="Telegram bot linkini qaytaradi",
-        responses={200: openapi.Response('Bot link', schema=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'bot_link': openapi.Schema(type=openapi.TYPE_STRING)
-            }
-        ))}
+    @extend_schema(
+        tags=["OTP Auth"],
+        summary="Telegram bot linki",
+        description="Telegram bot linkini qaytaradi",
+        responses={200: inline_serializer("BotLinkResponse", fields={
+            "bot_link": s.CharField()
+        })}
     )
     def get(self, request):
         bot_username = os.getenv('BOT_USERNAME')
@@ -41,14 +41,14 @@ class BotLinkView(APIView):
 
 
 class VerifyOTPView(APIView):
-    """OTP kodni tekshoradi va JWT qaytaradi"""
     throttle_classes = [OTPRequestThrottle]
 
-    @swagger_auto_schema(
-        operation_summary="sign up & sign in qilish",
-        operation_description="OTP kodni tekshiradi va JWT token qaytaradi",
-        request_body=VerifyOTPSerializer,
-        responses={200: openapi.Response('Muvaffaqiyatli')}
+    @extend_schema(
+        tags=["OTP Auth"],
+        summary="Sign up & Sign in",
+        description="OTP kodni tekshiradi va JWT token qaytaradi",
+        request=VerifyOTPSerializer,
+        responses={200: OpenApiResponse(description="Muvaffaqiyatli — tokenlar qaytadi")}
     )
     def post(self, request):
         serializer = VerifyOTPSerializer(data=request.data)
@@ -62,16 +62,10 @@ class VerifyOTPView(APIView):
 
         if attempt.is_blocked():
             return Response({'error': "Telefon raqam bloklangan. 10 daqiqadan keyin urinib ko'ring"},
-                            status=status.HTTP_429_TOO_MANY_REQUESTS
-                            )
+                            status=status.HTTP_429_TOO_MANY_REQUESTS)
         try:
-            otp = OTPCode.objects.get(
-                phone_number=phone,
-                code=code,
-                is_used=False
-            )
+            otp = OTPCode.objects.get(phone_number=phone, code=code, is_used=False)
         except OTPCode.DoesNotExist:
-            """Agar otp kod xato bo'lsa attempt ga +1 qo'shamiz"""
             attempt.add_attempt()
             remaining = 5 - attempt.attempts
             return Response(
@@ -85,7 +79,6 @@ class VerifyOTPView(APIView):
                 {"error": "Kod muddati tugagan. Qaytadan urinib ko'ring"},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        """agar kod to'g'ri bo'lsa attemptni 0 is_used ni True qilamiz"""
         attempt.reset()
         otp.is_used = True
         otp.save()
@@ -101,6 +94,7 @@ class VerifyOTPView(APIView):
         if not created:
             user.chat_id = otp.chat_id
             user.save()
+
         tokens = get_tokens_for_user(user)
 
         return Response({
@@ -108,26 +102,21 @@ class VerifyOTPView(APIView):
             'tokens': tokens,
             'user': {
                 'phone_number': user.phone_number,
-                'nmae': user.name,
+                'name': user.name,  # ✅ 'nmae' typo ham to'g'irlandi
             }
-        },
-            status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
-    """Chiqib ketish"""
 
-    @swagger_auto_schema(
-        operation_summary="logout qilish",
-        operation_description="Refresh tokenni blacklistga soladi",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['refresh'],
-            properties={
-                'refresh': openapi.Schema(type=openapi.TYPE_STRING)
-            }
-        ),
-        responses={200: openapi.Response('Chiqildi')}
+    @extend_schema(
+        tags=["OTP Auth"],
+        summary="Logout",
+        description="Refresh tokenni blacklistga soladi",
+        request=inline_serializer("LogoutRequest", fields={
+            "refresh": s.CharField()
+        }),
+        responses={200: OpenApiResponse(description="Chiqildi")}
     )
     def post(self, request):
         try:
@@ -143,23 +132,22 @@ class LogoutView(APIView):
 
 
 class MeView(APIView):
-    """Profil ma'lumotlarini ko'rish va tahrirlash """
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_summary="Profil ma'lumotlarini ko'rish",
-        operation_description="Profil ma'lumotlarini ko'rish",
-        responses={200: UserSerializer()}
+    @extend_schema(
+        tags=["Profil"],
+        summary="Profil ma'lumotlarini ko'rish",
+        responses={200: UserSerializer}
     )
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    @swagger_auto_schema(
-        operation_summary="Profil Ma'lumotlarini tahrirlash",
-        operation_description="Profil Ma'lumotlarini tahrirlash",
-        request_body=UserSerializer,
-        responses={200: UserSerializer()}
+    @extend_schema(
+        tags=["Profil"],
+        summary="Profil ma'lumotlarini tahrirlash",
+        request=UserSerializer,
+        responses={200: UserSerializer}
     )
     def patch(self, request):
         serializer = UserSerializer(request.user, data=request.data, partial=True)
@@ -167,4 +155,3 @@ class MeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
