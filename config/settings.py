@@ -154,6 +154,7 @@ REST_FRAMEWORK = {
         'anon': '100/day',
         'user': '1000/day',
         'otp_request': '5/minute',
-    }
+    },
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.openapi.AutoSchema',
 }
 TESTING = False
