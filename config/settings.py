@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'apps.users',
     'apps.interviews',
-
+    'apps.user_profile',
     'apps.vacancies',
 ]
 
@@ -131,6 +131,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
+
 
 
 TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")

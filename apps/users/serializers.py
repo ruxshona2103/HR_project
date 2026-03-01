@@ -12,3 +12,4 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'phone_number', 'name', 'chat_id', 'created_at']
         read_only_fields = ['phone_number', 'chat_id', 'created_at']
+

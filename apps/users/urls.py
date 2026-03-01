@@ -1,6 +1,9 @@
+from rest_framework.routers import DefaultRouter
+
 from .views import LogoutView, MeView, VerifyOTPView, BotLinkView
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
+
 
 urlpatterns = [
     path('auth/bot-link/', BotLinkView.as_view(), name='bot-link'),
