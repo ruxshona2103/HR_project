@@ -1,9 +1,8 @@
-from django.contrib.auth import get_user_model
+from apps.accounts.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-User = get_user_model()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -100,7 +99,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         return data
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class AccountUserProfileSerializer(serializers.ModelSerializer):
     """
     Profil ko'rish va tahrirlash (email o'zgartirib bo'lmaydi)
     """
