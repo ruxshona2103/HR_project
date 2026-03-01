@@ -6,17 +6,27 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
-
+from rest_framework_simplejwt.views import TokenRefreshView
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
-    UserProfileSerializer,
+    AccountUserProfileSerializer,
     ChangePasswordSerializer,
 )
 
 User = get_user_model()
 
 
+class EmailTokenRefreshView(TokenRefreshView):
+    @extend_schema(tags=["Email Auth"], summary="Email Auth — Token yangilash")
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+@extend_schema(tags=["Email Auth"],
+        summary="Ro'yxatdan o'tish",
+        description="Email + parol bilan yangi account yaratish. Telefon raqam ixtiyoriy.",
+               )
 class RegisterView(generics.CreateAPIView):
     """Yangi foydalanuvchi ro'yxatdan o'tkazish"""
     queryset = User.objects.all()
@@ -24,7 +34,7 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     @extend_schema(
-        tags=["Auth"],
+        tags=["Email Auth"],
         summary="Ro'yxatdan o'tish",
         description="Email + parol bilan yangi account yaratish. Telefon raqam ixtiyoriy.",
         responses={
@@ -78,9 +88,10 @@ class LoginView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
 
     @extend_schema(
-        tags=["Auth"],
+        tags=["Email Auth"],
         summary="Kirish (Login)",
         description="Email va parol bilan kirish. Access (1 soat) va Refresh (7 kun) token qaytaradi.",
+        request=LoginSerializer,
         examples=[
             OpenApiExample(
                 "Misol so'rov",
@@ -93,26 +104,13 @@ class LoginView(TokenObtainPairView):
         return super().post(request, *args, **kwargs)
 
 
-class TokenRefreshView(APIView):
-    """Access tokenni yangilash"""
-    permission_classes = [permissions.AllowAny]
-
-    @extend_schema(
-        tags=["Auth"],
-        summary="Token yangilash",
-        description="Refresh token bilan yangi access token olish.",
-    )
-    def post(self, request):
-        from rest_framework_simplejwt.views import TokenRefreshView as BaseRefreshView
-        return BaseRefreshView.as_view()(request._request)
-
 
 class LogoutView(APIView):
     """Chiqish - refresh tokenni blacklistga qo'shish"""
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(
-        tags=["Auth"],
+        tags=["Email Auth"],
         summary="Chiqish (Logout)",
         description="Refresh tokenni bekor qiladi. Keyinchalik bu token ishlamaydi.",
         examples=[
@@ -146,7 +144,7 @@ class LogoutView(APIView):
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     """Profil ko'rish (GET) va tahrirlash (PATCH)"""
-    serializer_class = UserProfileSerializer
+    serializer_class = AccountUserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ["get", "patch", "head", "options"]
 
@@ -173,6 +171,7 @@ class ChangePasswordView(APIView):
     @extend_schema(
         tags=["Profil"],
         summary="Parolni o'zgartirish",
+        request=ChangePasswordSerializer,
         examples=[
             OpenApiExample(
                 "Misol so'rov",
@@ -205,6 +204,7 @@ class MeView(APIView):
         tags=["Profil"],
         summary="Men kimman?",
         description="Token orqali joriy foydalanuvchi ma'lumotlarini olish.",
+        responses=AccountUserProfileSerializer,
     )
     def get(self, request):
         user = request.user
