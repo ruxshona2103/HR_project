@@ -38,7 +38,6 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "apps.accounts",
     "apps.users",
     "apps.interviews",
     'apps.user_profile',
@@ -148,6 +147,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/day",
         "user": "1000/day",
+        'otp_request': '5/minute',
     },
 }
 
@@ -190,7 +190,10 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-
+AUTHENTICATION_BACKENDS = [
+    'apps.users.backends.EmailOrPhoneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
