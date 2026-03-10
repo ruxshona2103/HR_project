@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,6 +15,7 @@ class ChooseRoleView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(tags=["Role tanlash"])
     def post(self, request):
         # 1. Ma'lumotni validatsiya qilish
         serializer = RoleSelectionSerializer(data=request.data)
