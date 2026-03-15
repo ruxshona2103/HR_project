@@ -1,14 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
-
+from drf_spectacular.utils import extend_schema
 from .models import TeamAbout, ContactInfo, PlatformStep, Product, PricingPlan
 from .serializers import (
     TeamAboutSerializer, ContactInfoSerializer,
     PlatformStepSerializer, ProductSerializer, PricingPlanSerializer
 )
-
-
+@extend_schema(tags=["landing page"])
 class LandingPageDataView(APIView):
     """
     Landing sahifa uchun barcha ma'lumotlarni bitta so'rovda qaytaruvchi View.
@@ -34,19 +33,19 @@ class LandingPageDataView(APIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
-
+@extend_schema(tags=["landing page"])
 class ProductListView(generics.ListAPIView):
     """Mahsulotlar ro'yxati uchun alohida endpoint"""
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
 
-
+@extend_schema(tags=["landing page"])
 class PricingPlanListView(generics.ListAPIView):
     """Narxlar tariflari uchun alohida endpoint"""
     queryset = PricingPlan.objects.filter(is_active=True)
     serializer_class = PricingPlanSerializer
 
-
+@extend_schema(tags=["landing page"])
 class ContactInfoView(generics.RetrieveAPIView):
     """Aloqa ma'lumotlarini olish"""
     serializer_class = ContactInfoSerializer
