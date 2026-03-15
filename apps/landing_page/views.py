@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status, generics
 from drf_spectacular.utils import extend_schema
@@ -9,6 +10,7 @@ from .serializers import (
 )
 @extend_schema(tags=["landing page"])
 class LandingPageDataView(APIView):
+    permission_classes = [AllowAny]
     """
     Landing sahifa uchun barcha ma'lumotlarni bitta so'rovda qaytaruvchi View.
     Bu frontendchilar uchun juda qulay, chunki bitta request bilan butun sahifani to'ldirish mumkin.
