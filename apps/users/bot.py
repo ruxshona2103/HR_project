@@ -13,7 +13,7 @@ django.setup()
 from asgiref.sync import sync_to_async
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, \
     InlineKeyboardButton
-from apps.users.models import OTPCode, User
+from apps.users.models import OTPCode, User, PendingRegistration
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -49,7 +49,21 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(user.id)
     username = user.username or ''
 
-    """Xali eskirmagan ushlatilmagan kod bormi yo'zmi tekshiradi"""
+    # 1. PendingRegistration bormi tekshirish
+    pending_exists = await sync_to_async(
+        PendingRegistration.objects.filter(phone_number=phone).exists
+    )()
+
+    if not pending_exists:
+        # Agar web saytda ro'yxatdan o'tmagan bo'lsa
+        await update.message.reply_text(
+            "⚠️ Bu telefon raqam web saytda ro'yxatdan o'tmagan.\n\n"
+            "Iltimos avval web saytda ro'yxatdan o'ting: [web sayt linki]",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return
+
+    # 2. Eski kodlarni o'chirish
     existing_otp = await sync_to_async(
         lambda: OTPCode.objects.filter(
             phone_number=phone,
@@ -60,17 +74,16 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if existing_otp and not existing_otp.is_expired():
         remaining = max(0, int(60 - (timezone.now() - existing_otp.created_at).total_seconds()))
         await update.message.reply_text(
-            f"Eski kodingiz hali ham amal qiladi. "
-            f"{remaining} soniya kuting.",
+            f"Eski kodingiz hali ham amal qiladi. {remaining} soniya kuting.",
             reply_markup=ReplyKeyboardRemove()
         )
         return
 
-    """ Eski kodlarni o'chiradi"""
     await sync_to_async(
         OTPCode.objects.filter(phone_number=phone, is_used=False).delete
     )()
 
+    # 3. Yangi kod yaratish
     code = str(random.randint(100000, 999999))
 
     await sync_to_async(OTPCode.objects.create)(
@@ -88,7 +101,6 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove()
     )
-
 
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
@@ -133,7 +145,7 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await sync_to_async(OTPCode.objects.create)(
         phone_number=user.phone_number,
         chat_id=chat_id,
-        username=user.name or '',
+        username=user.first_name or '',
         code=code
     )
 
