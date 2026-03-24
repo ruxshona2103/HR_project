@@ -212,7 +212,7 @@ class OrganizationRegisterView(generics.CreateAPIView):
         ),
         OpenApiExample(
             "Telefon bilan",
-            value={"email": "+998901234567", "password": "StrongPass123!"},
+            value={"phone_number": "+998901234567", "password": "StrongPass123!"},
             request_only=True
         )
     ],
@@ -241,7 +241,7 @@ class LogoutView(APIView):
         examples=[
             OpenApiExample(
                 "Logout namuna",
-                value={"refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."},
+                value={"refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"},
                 request_only=True
             )
         ],
