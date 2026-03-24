@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import TeamAbout, ContactInfo, PlatformStep, Product, PricingPlan
 
 
-# 1. Singleton modellar uchun maxsus sozlama (Yangi qo'shish tugmasini cheklash uchun)
+
 class SingletonAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Agar bazada bitta bo'lsa, ikkinchisini qo'shishga ruxsat bermaydi

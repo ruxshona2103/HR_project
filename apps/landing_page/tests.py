@@ -1,3 +1,4 @@
+
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
@@ -104,3 +105,6 @@ class LandingPageTest(APITestCase):
         # Narx maydoni string bo'lib kelayotganini tekshiramiz
         if len(pricing_data) > 0:
             self.assertIsInstance(pricing_data[0]['price'], str)
+
+
+
