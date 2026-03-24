@@ -32,7 +32,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",
+    # "rest_framework_simplejwt.token_blacklist",  # ← COMMENT!
     "corsheaders",
     'drf_spectacular',
 ]
@@ -206,3 +206,34 @@ AUTHENTICATION_BACKENDS = [
 TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")
 
 TESTING = False
+
+# ==================== EMAIL SETTINGS ====================
+#Production rejim (haqiqiy email yuborish)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
+
+
+# Console rejim (test uchun):
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'HR Project <noreply@hrproject.uz>'
+###------ochirish mumkin pastdagini!!!
+# ==================== EMAIL SETTINGS ====================
+# Console rejim (test uchun - terminalda ko'rsatadi)
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'HR Project <noreply@hrproject.uz>'
+
+# ==================== EMAIL SETTINGS ====================
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # ← Comment!
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # ← Uncomment!
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
