@@ -55,15 +55,13 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )()
 
     if not pending_exists:
-        # Agar web saytda ro'yxatdan o'tmagan bo'lsa
         await update.message.reply_text(
             "⚠️ Bu telefon raqam web saytda ro'yxatdan o'tmagan.\n\n"
-            "Iltimos avval web saytda ro'yxatdan o'ting: [web sayt linki]",
+            "Iltimos avval web saytda ro'yxatdan o'ting: [127.0.0.0:8000]",
             reply_markup=ReplyKeyboardRemove()
         )
         return
 
-    # 2. Eski kodlarni o'chirish
     existing_otp = await sync_to_async(
         lambda: OTPCode.objects.filter(
             phone_number=phone,
@@ -83,7 +81,6 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         OTPCode.objects.filter(phone_number=phone, is_used=False).delete
     )()
 
-    # 3. Yangi kod yaratish
     code = str(random.randint(100000, 999999))
 
     await sync_to_async(OTPCode.objects.create)(
