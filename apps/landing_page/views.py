@@ -1,7 +1,4 @@
-
 from django.shortcuts import render
-
-
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -41,18 +38,21 @@ class LandingPageDataView(APIView):
 
 @extend_schema(tags=["landing page"])
 class ProductListView(generics.ListAPIView):
+    permission_classes = [AllowAny]
     """Mahsulotlar ro'yxati uchun alohida endpoint"""
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
 
 @extend_schema(tags=["landing page"])
 class PricingPlanListView(generics.ListAPIView):
+    permission_classes = [AllowAny]
     """Narxlar tariflari uchun alohida endpoint"""
     queryset = PricingPlan.objects.filter(is_active=True)
     serializer_class = PricingPlanSerializer
 
 @extend_schema(tags=["landing page"])
 class ContactInfoView(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
     """Aloqa ma'lumotlarini olish"""
     serializer_class = ContactInfoSerializer
 
