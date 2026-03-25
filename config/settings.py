@@ -32,7 +32,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
-    # "rest_framework_simplejwt.token_blacklist",  # ← COMMENT!
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     'drf_spectacular',
 ]
@@ -155,8 +155,10 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'API HR',
     'DESCRIPTION': 'HR PROJECT API hujjatlari',
-    'VERSION': 'v1',
+    'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SORT_OPERATIONS': True,
+    'SORT_OPERATION_PARAMETERS': True,
     'SECURITY': [{'BearerAuth': []}],
     'COMPONENTS': {
         'securitySchemes': {

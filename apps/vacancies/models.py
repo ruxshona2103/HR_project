@@ -72,8 +72,10 @@ class Vacancy(models.Model):
         ("FIELD", "Joylarga chiqish shaklida"),
     ]
 
-    title = models.CharField(max_length=255)
-    description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar")
+    title = models.CharField(max_length=255,null=True,
+        blank=True)
+    description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar",null=True,
+        blank=True)
 
     # Asosiy ma'lumotlar
     photo = models.ImageField(
@@ -82,16 +84,24 @@ class Vacancy(models.Model):
     industry = models.CharField(
         max_length=255,
         help_text="Kasb sohasi",
+        null=True,
+        blank=True
     )
     specialization = models.CharField(
         max_length=255,
         help_text="Kasb yo'nalishi",
+        null=True,
+        blank=True
     )
     vacant_slots = models.PositiveIntegerField(
-        default=1, help_text="Vakant o'rinlari soni"
+        default=1, help_text="Vakant o'rinlari soni",
+        null=True,
+        blank=True
     )
     required_skills = models.TextField(
-        help_text="Kerakli ko'nikmalar (vergul bilan ajratib yozing)"
+        help_text="Kerakli ko'nikmalar (vergul bilan ajratib yozing)",
+    null = True,
+    blank = True
     )
 
     # Maosh va talablar
@@ -124,40 +134,56 @@ class Vacancy(models.Model):
     employment_type = models.CharField(
         max_length=20,
         choices=EMPLOYMENT_TYPE_CHOICES,
+        null=True,
+        blank=True
     )
     experience_level = models.CharField(
         max_length=20,
         choices=EXPERIENCE_LEVEL_CHOICES,
+        null=True,
+        blank=True
     )
     education_level = models.CharField(
         max_length=20,
         choices=EDUCATION_LEVEL_CHOICES,
+        null=True,
+        blank=True
     )
 
     # Hudud va ish turi
     region = models.CharField(
         max_length=255,
         help_text="Viloyat",
+        null=True,
+        blank=True
     )
     district = models.CharField(
         max_length=255,
         help_text="Tuman / Shahar",
+        null=True,
+        blank=True
     )
     work_formats = models.JSONField(
         default=list,
+        null=True,
         blank=True,
         help_text="Ish turi (bir nechta qiymat: OFfICE/REMOTE/HYBRID/FIELD)",
     )
     work_schedule = models.CharField(
         max_length=20,
         choices=WORK_SCHEDULE_CHOICES,
+        null=True,
+        blank=True
     )
     daily_hours = models.CharField(
         max_length=20,
         choices=DAILY_HOURS_CHOICES,
+        default='8'
     )
     company_address = models.TextField(
         help_text="Korxona manzili (matn ko'rinishida)",
+        null=True,
+        blank=True
     )
     map_lat = models.DecimalField(
         max_digits=9,
@@ -173,8 +199,8 @@ class Vacancy(models.Model):
     )
 
     # Muddat va izoh
-    publish_start = models.DateField()
-    publish_end = models.DateField()
+    publish_start = models.DateField(null=True, blank=True)
+    publish_end = models.DateField(null=True, blank=True)
     ai_improved_description = models.TextField(
         null=True,
         blank=True,
@@ -182,7 +208,8 @@ class Vacancy(models.Model):
     )
 
     # Mavjud maydonlarni moslik uchun qoldiramiz
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="system")
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="system",null=True,
+        blank=True)
     min_experience = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
