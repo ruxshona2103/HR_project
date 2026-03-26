@@ -38,7 +38,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "apps.users",
+    "apps.users1",
     "apps.interviews",
     'apps.user_profile',
     'apps.vacancies',
@@ -127,7 +127,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users1.User'
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -171,17 +171,25 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+#     "ROTATE_REFRESH_TOKENS": True,
+#     "BLACKLIST_AFTER_ROTATION": True,
+#     "UPDATE_LAST_LOGIN": True,
+#     "ALGORITHM": "HS256",
+#     "AUTH_HEADER_TYPES": ("Bearer",),
+#     "USER_ID_FIELD": "id",
+#     "USER_ID_CLAIM": "user_id",
+# }
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
-    "ALGORITHM": "HS256",
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
+
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
@@ -193,11 +201,14 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-AUTHENTICATION_BACKENDS = [
-    'apps.users.backends.EmailOrPhoneBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
+# AUTHENTICATION_BACKENDS = [
+#     'apps.users.backends.EmailOrPhoneBackend',
+#     'django.contrib.auth.backends.ModelBackend',
+# ]
 
+AUTHENTICATION_BACKENDS = [
+    'apps.users1.backends.EmailBackend',
+]
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -206,6 +217,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")
+BOT_USERNAME = os.getenv("BOT_USERNAME")
 
 TESTING = False
 
@@ -232,7 +244,7 @@ TESTING = False
 # ==================== EMAIL SETTINGS ====================
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # ← Comment!
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # ← Uncomment!
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
