@@ -6,17 +6,14 @@ from .models import TeamAbout, ContactInfo, PlatformStep, Product, PricingPlan
 
 class SingletonAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
-        # Agar bazada bitta bo'lsa, ikkinchisini qo'shishga ruxsat bermaydi
         if self.model.objects.exists():
             return False
         return True
 
     def has_delete_permission(self, request, obj=None):
-        # Asosiy sozlamalarni o'chirib tashlashni taqiqlash (ixtiyoriy)
         return False
 
 
-# 2. Modellarni admin panelga ro'yxatdan o'tkazish
 @admin.register(TeamAbout)
 class TeamAboutAdmin(SingletonAdmin):
     list_display = ('title', 'description', 'experience_years')
@@ -26,7 +23,7 @@ class TeamAboutAdmin(SingletonAdmin):
 class ContactInfoAdmin(SingletonAdmin):
     list_display = ('email', 'phone_number')
 
-    # Maydonlarni guruhlarga bo'lib ko'rsatish
+
     fieldsets = (
         ("Asosiy ma'lumotlar", {
             'fields': ('phone_number', 'email')
@@ -41,7 +38,7 @@ class ContactInfoAdmin(SingletonAdmin):
 @admin.register(PlatformStep)
 class PlatformStepAdmin(admin.ModelAdmin):
     list_display = ('step_number', 'title', 'is_active')
-    list_editable = ('is_active',)  # Ro'yxatning o'zida o'chirib-yoqish imkoniyati
+    list_editable = ('is_active',)
     list_filter = ('is_active',)
     search_fields = ('title', 'description')
 
