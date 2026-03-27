@@ -58,7 +58,7 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         PendingRegistration.objects.filter(phone_number=phone).exists
     )()
 
-    # Agar ikkalasi ham yo'q — web saytda avval ro'yxatdan o'tish kerak
+    # Agar ikkalasi ham yo'q — web saytda avval ro'yxatdan o'tish kerak deb aytadi
     if not user_exists and not pending_exists:
         await update.message.reply_text(
             "⚠️ Bu telefon raqam ro'yxatdan o'tmagan.\n\n"
