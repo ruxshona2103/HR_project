@@ -14,11 +14,9 @@ urlpatterns = [
     path("", RedirectView.as_view(url="/swagger/"), name="home"),
     path("admin/", admin.site.urls),
 
-    # path("api/users/", include("apps.users.urls")),
     path('api/users/', include('apps.users1.urls')),
     path("api/user_profile/", include("apps.user_profile.urls")),
     path("api/vacancies/", include("apps.vacancies.urls")),
-    path("api/interviews/", include("apps.interviews.urls")),
     path("api/profile/", include("apps.profile.urls")),
 
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
