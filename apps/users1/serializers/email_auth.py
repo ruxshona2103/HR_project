@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
 from apps.users1.models import User, EmailVerificationCode
+from django.db import transaction
 import re
 import dns.resolver
 
@@ -213,26 +214,43 @@ class VerifyEmailSerializer(serializers.Serializer):
         attrs['verification'] = verification
         return attrs
 
+    # def save(self):
+    #     verification = self.validated_data['verification']
+    #
+    #     user = User.objects.create(
+    #         email=verification.email,
+    #         first_name=verification.first_name,
+    #         last_name=verification.last_name,
+    #         middle_name=verification.middle_name,
+    #         password=verification.password,  # allaqachon hashed
+    #         user_type=verification.user_type,
+    #         organization_name=verification.organization_name,
+    #         position=verification.position,
+    #     )
+    #
+    #     # Kodni ishlatilgan deb belgilash
+    #     verification.is_used = True
+    #     verification.save()
+    #
+    #     return user
     def save(self):
         verification = self.validated_data['verification']
 
-        user = User.objects.create(
-            email=verification.email,
-            first_name=verification.first_name,
-            last_name=verification.last_name,
-            middle_name=verification.middle_name,
-            password=verification.password,  # allaqachon hashed
-            user_type=verification.user_type,
-            organization_name=verification.organization_name,
-            position=verification.position,
-        )
-
-        # Kodni ishlatilgan deb belgilash
-        verification.is_used = True
-        verification.save()
+        with transaction.atomic():
+            user = User.objects.create(
+                email=verification.email,
+                first_name=verification.first_name,
+                last_name=verification.last_name,
+                middle_name=verification.middle_name,
+                password=verification.password,
+                user_type=verification.user_type,
+                organization_name=verification.organization_name,
+                position=verification.position,
+            )
+            verification.is_used = True
+            verification.save()
 
         return user
-
 
 
 class ResendEmailCodeSerializer(serializers.Serializer):
