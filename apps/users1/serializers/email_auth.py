@@ -214,25 +214,6 @@ class VerifyEmailSerializer(serializers.Serializer):
         attrs['verification'] = verification
         return attrs
 
-    # def save(self):
-    #     verification = self.validated_data['verification']
-    #
-    #     user = User.objects.create(
-    #         email=verification.email,
-    #         first_name=verification.first_name,
-    #         last_name=verification.last_name,
-    #         middle_name=verification.middle_name,
-    #         password=verification.password,  # allaqachon hashed
-    #         user_type=verification.user_type,
-    #         organization_name=verification.organization_name,
-    #         position=verification.position,
-    #     )
-    #
-    #     # Kodni ishlatilgan deb belgilash
-    #     verification.is_used = True
-    #     verification.save()
-    #
-    #     return user
     def save(self):
         verification = self.validated_data['verification']
 

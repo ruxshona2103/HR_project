@@ -286,23 +286,6 @@ class OTPVerifyView(APIView):
                 "error": "Ro'yxat muddati tugagan. Qaytadan ro'yxatdan o'ting."
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # # Yangi user yaratish (parolsiz — telefon orqali kiradi)
-        # user = User(
-        #     phone_number=phone,
-        #     email=None,
-        #     user_type=pending.user_type,
-        #     first_name=pending.first_name,
-        #     last_name=pending.last_name,
-        #     middle_name=pending.middle_name,
-        #     organization_name=pending.organization_name,
-        #     position=pending.position,
-        #     chat_id=otp.chat_id or None,
-        # )
-        # user.set_unusable_password()
-        # user.save()
-        #
-        # # PendingRegistration ni o'chirish
-        # pending.delete()
         with transaction.atomic():
             user = User(
              phone_number=phone,
