@@ -15,8 +15,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="HR Mock API",
+        default_version='v1',
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+    authentication_classes=[],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('jobs.urls')),
+
+    # Swagger
+    path('swagger/', schema_view.with_ui('swagger'), name='swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc'), name='redoc'),
 ]
