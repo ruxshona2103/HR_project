@@ -25,7 +25,6 @@ class LandingPageDataView(APIView):
         products = Product.objects.filter(is_active=True)
         pricing = PricingPlan.objects.filter(is_active=True)
 
-
         data = {
             "team": TeamAboutSerializer(team).data if team else None,
             "how_it_works": PlatformStepSerializer(steps, many=True).data,
@@ -58,4 +57,3 @@ class ContactInfoView(generics.RetrieveAPIView):
 
     def get_object(self):
         return ContactInfo.objects.first()
-
