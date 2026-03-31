@@ -76,11 +76,7 @@ class Vacancy(models.Model):
         blank=True)
     description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar",null=True,
         blank=True)
-    company = models.ForeignKey(
-        'profile.CompanyProfile',  # 'app_name.ModelName'
-        on_delete=models.CASCADE,
-        related_name='vacancies'
-    )
+
     # Asosiy ma'lumotlar
     photo = models.ImageField(
         upload_to="vacancies/photos/", null=True, blank=True
