@@ -44,6 +44,7 @@ LOCAL_APPS = [
     "apps.profile",
     'apps.landing_page',
     'apps.choose_roles',
+    'apps.resume',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -160,6 +161,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'SORT_OPERATIONS': True,
     'SORT_OPERATION_PARAMETERS': True,
+    'COMPONENT_SPLIT_REQUEST': True,
     'SECURITY': [{'BearerAuth': []}],
     'COMPONENTS': {
         'securitySchemes': {
@@ -252,3 +254,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
+
+
+print("SPECTACULAR SETTINGS LOADED")
