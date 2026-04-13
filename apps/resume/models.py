@@ -3,9 +3,6 @@ from django.contrib.auth.models import User
 from django.conf import settings
 
 
-
-
-
 class Resume(models.Model):
     """Nomzodning asosiy resume kartochkasi"""
     foydalanuvchi = models.ForeignKey(
