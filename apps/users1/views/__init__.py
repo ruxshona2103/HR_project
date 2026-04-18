@@ -18,7 +18,11 @@ from .profile import (
     DeleteAccountView,
     BotLinkView,
 )
-
+from .telegram_connect_views import (
+    TelegramConnectView,
+    TelegramDisconnectView,
+    TelegramStatusView,
+    SendVacancyNotificationView,)
 __all__ = [
     'PhoneCandidateRegisterView',
     'PhoneOrganizationRegisterView',
@@ -36,4 +40,9 @@ __all__ = [
     'LogoutView',
     'DeleteAccountView',
     'BotLinkView',
+
+    'TelegramConnectView',
+    'TelegramDisconnectView',
+    'TelegramStatusView',
+    'SendVacancyNotificationView',
 ]
