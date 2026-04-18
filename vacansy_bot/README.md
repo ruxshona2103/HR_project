@@ -15,15 +15,9 @@ PLATFORM_URL=https://yourdomain.uz
 
 ### 2. Botni ishga tushirish:
 ```bash
-# Alohida terminal oynasida:
-python apps/users1/bot.py
+python -m vacansy_bot.bot
 
-# Yoki loyiha ildizidan:
-python -m apps.users1.bot
 ```
-
----
-
 ## 🔄 Bot ishlash oqimi
 
 ### Kandidat oqimi (1-variant — Platforma bilan bog'lash):
