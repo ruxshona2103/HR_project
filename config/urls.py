@@ -9,7 +9,6 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 
-
 urlpatterns = [
     path("", RedirectView.as_view(url="/swagger/"), name="home"),
     path("admin/", admin.site.urls),
@@ -20,6 +19,8 @@ urlpatterns = [
     path("api/profile/", include("apps.profile.urls")),
     path("api/landing_page/", include("apps.landing_page.urls")),
     path("api/resume/", include("apps.resume.urls")),
+
+    path("api/telegram", include("config.urls_telegram")),
 
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

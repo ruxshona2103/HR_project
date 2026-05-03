@@ -101,7 +101,7 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"✅ Sizning tasdiqlash kodingiz:\n\n"
         f"`{code}`\n\n"
         f"Kodni web saytga kiriting. Kod 5 daqiqada eskiradi.\n\n"
-        f"Yangi kod olish uchun /start ni bosing.",
+        f"Yangi kod olish uchun /login ni bosing.",
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove()
     )

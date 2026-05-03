@@ -9,3 +9,6 @@ EMAIL_HOST_PASSWORD=***************
 DEFAULT_FROM_EMAIL=*********************
 
 
+TELEGRAM_BOT_TOKEN_2=*******************************************************
+BOT_USERNAME_2=****************
+PLATFORM_URL=*****************

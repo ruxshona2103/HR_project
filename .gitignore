@@ -206,3 +206,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+*.swp
+*.swo
+
+.DS_Store
+Thumbs.db
+
