@@ -34,6 +34,8 @@ from telegram import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     KeyboardButton,
+    BotCommand
+
 )
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -56,8 +58,8 @@ logger = logging.getLogger(__name__)
 
 # ─── Muhit o'zgaruvchilari ────────────────────────────────────────────────────
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN_2", "")
-PLATFORM_URL = os.getenv("PLATFORM_URL", "https://yourdomain.uz")
-BOT_USERNAME = os.getenv("BOT_USERNAME_2", "hr_mock_bot")
+PLATFORM_URL = os.getenv("PLATFORM_URL", "http://127.0.0.1:8000").rstrip("/")
+BOT_USERNAME = os.getenv("BOT_USERNAME", "hr_mock_bot")
 
 # ─── ConversationHandler holatlari ───────────────────────────────────────────
 (
@@ -186,37 +188,56 @@ def get_vacancies_for_user(user, limit: int = 5):
 
 @sync_to_async
 def create_vacancy_from_bot(hr_user, data: dict):
-    """HR tomonidan botdan vakansiya yaratish"""
+    """
+    HR tomonidan botdan vakansiya yaratish.
+
+    Agar CompanyProfile mavjud bo'lmasa — avtomatik yaratiladi.
+    organization_name User modelidan olinadi (yoki data ichidagi sarlavha).
+    """
     from apps.vacancies.models import Vacancy
     from apps.profile.models import CompanyProfile
 
-    company = CompanyProfile.objects.filter(user=hr_user).first()
-    if not company:
-        return None
+    # get_or_create — CompanyProfile yo'q bo'lsa avtomatik yaratadi
+    company_name = (
+        hr_user.organization_name          # User modelida saqlangan
+        or hr_user.get_full_name()
+        or f"HR #{hr_user.id}"
+    )
+    company, created = CompanyProfile.objects.get_or_create(
+        user=hr_user,
+        defaults={
+            "name": company_name,
+            "industry": data.get("industry", ""),
+        },
+    )
+
+    # Agar kompaniya endigina yaratilmagan bo'lsa, industry ni yangilash
+    if not created and not company.industry and data.get("industry"):
+        company.industry = data.get("industry", "")
+        company.save(update_fields=["industry"])
 
     vacancy = Vacancy.objects.create(
         company=company,
         title=data.get("title", ""),
         industry=data.get("industry", ""),
         description=data.get("description", ""),
-        salary_level=data.get("salary", ""),
+        salary_level=data.get("salary", "") or "Kelishuv bo'yicha",
         employment_type=data.get("employment_type", "FULL_TIME"),
         ai_improved_description=data.get("ai_interview_link", ""),
         publish_start=timezone.now().date(),
         publish_end=(timezone.now() + timedelta(days=30)).date(),
     )
-    return vacancy
+    return vacancy, created   # (vacancy, kompaniya_yangi_yaratildimi)
 
 
 @sync_to_async
 def get_hr_vacancies(hr_user, limit: int = 10):
-    from apps.vacancies.models import Vacancy
     from apps.profile.models import CompanyProfile
 
     company = CompanyProfile.objects.filter(user=hr_user).first()
     if not company:
-        return []
-    return list(company.vacancies.order_by("-created_at")[:limit])
+        return []   # Profil yo'q — hali hech qanday vakansiya yo'q
+    return list(company.vacancies.select_related("company").order_by("-created_at")[:limit])
 
 
 @sync_to_async
@@ -363,7 +384,7 @@ async def auth_method(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         context.user_data["link_token"] = token
         context.user_data["tg_chat_id"] = str(update.effective_user.id)
 
-        link_url = f"{PLATFORM_URL}/telegram/connect/?token={token}&chat_id={update.effective_user.id}"
+        link_url = f"{PLATFORM_URL}/api/users/telegram/connect/?token={token}&chat_id={update.effective_user.id}"
 
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("🌐 Platformaga kirish", url=link_url)],
@@ -612,15 +633,25 @@ async def cmd_create_vacancy(update: Update, context: ContextTypes.DEFAULT_TYPE)
     chat_id = str(update.effective_user.id)
     user = await get_user_by_chat_id(chat_id)
 
-    if not user or user.user_type != "organization":
+    if not user:
+        await update.message.reply_text(
+            "⚠️ Siz hali botga kirgansiz.\n"
+            "Iltimos /start bosing va HR sifatida kiring.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return ConversationHandler.END
+
+    if user.user_type != "organization":
         await update.message.reply_text(
             "⛔ Bu funksiya faqat HR / Tashkilot foydalanuvchilari uchun.\n"
             "Iltimos /start orqali HR sifatida kiring."
         )
         return ConversationHandler.END
 
-    context.user_data["vac"] = {}
+    # user_id ni har doim yangilab qo'yamiz
     context.user_data["user_id"] = user.id
+    context.user_data["user_type"] = user.user_type
+    context.user_data["vac"] = {}
 
     await update.message.reply_text(
         "➕ <b>Yangi vakansiya yaratish</b>\n\n"
@@ -719,7 +750,7 @@ async def vac_ai_interview(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if "Ha" in text:
         # AI intervyu havolasini platformadan olish
         user_id = context.user_data.get("user_id")
-        ai_link = f"{PLATFORM_URL}/ai-interview/vacancy/new/?hr={user_id}"
+        ai_link = f"{PLATFORM_URL}/swagger/#/AI%20Interview"
         context.user_data["vac"]["ai_interview_link"] = ai_link
         ai_info = f"🔗 AI intervyu havolasi: {ai_link}"
     else:
@@ -751,14 +782,42 @@ async def vac_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
     if text == BTN_YES:
         user_id = context.user_data.get("user_id")
+        if not user_id:
+            await update.message.reply_text(
+                "❌ Sessiya muddati tugadi. Qaytadan /create_vacancy bosing.",
+                reply_markup=main_menu_keyboard("organization"),
+            )
+            return ConversationHandler.END
 
         @sync_to_async
         def _get_user():
             from apps.users1.models import User
-            return User.objects.get(id=user_id)
+            return User.objects.filter(id=user_id).first()
 
         hr_user = await _get_user()
-        vacancy = await create_vacancy_from_bot(hr_user, context.user_data["vac"])
+        if not hr_user:
+            await update.message.reply_text(
+                "❌ Foydalanuvchi topilmadi. /start bosing.",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            return ConversationHandler.END
+
+        try:
+            result = await create_vacancy_from_bot(hr_user, context.user_data["vac"])
+            vacancy, company_created = result
+        except Exception as e:
+            logger.error(f"Vakansiya yaratishda xato: {e}", exc_info=True)
+            await update.message.reply_text(
+                f"❌ Xatolik yuz berdi: {e}\n\nQaytadan urinib ko'ring: /create_vacancy",
+                reply_markup=main_menu_keyboard("organization"),
+            )
+            return ConversationHandler.END
+
+        new_company_note = (
+            "\n\n⚠️ <i>Kompaniya profili avtomatik yaratildi. "
+            f"To'ldirib qo'yish uchun: {PLATFORM_URL}/api/profile/company-profile/me/ (PATCH)</i>"
+            if company_created else ""
+        )
 
         if vacancy:
             await update.message.reply_text(
@@ -766,14 +825,15 @@ async def vac_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 f"ID: #{vacancy.id}\n"
                 f"💼 {vacancy.title}\n\n"
                 f"Vakansiya platformadagi dashboardingizda ham ko'rinadi.\n"
-                f"🔗 {PLATFORM_URL}/dashboard/vacancies/",
+                f"🔗 {PLATFORM_URL}/api/profile/company-vacancies/"
+                f"{new_company_note}",
                 parse_mode=ParseMode.HTML,
                 reply_markup=main_menu_keyboard("organization"),
             )
         else:
             await update.message.reply_text(
-                "❌ Xatolik: Kompaniya profili topilmadi.\n"
-                f"Iltimos avval {PLATFORM_URL} da kompaniya profilingizni to'ldiring.",
+                "❌ Kutilmagan xatolik yuz berdi. Qaytadan urinib ko'ring.\n"
+                "/create_vacancy",
                 reply_markup=main_menu_keyboard("organization"),
             )
 
@@ -827,15 +887,21 @@ async def cmd_ai_interview(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_text("Iltimos avval /start orqali kiring.")
         return ConversationHandler.END
 
-    ai_url = f"{PLATFORM_URL}/ai-interview/?user={user.id}"
+    # AI intervyu havolasi — Swagger orqali yoki frontendingiz bo'lsa shu URL ni almashtiring
+    ai_url = f"{PLATFORM_URL}/swagger/#/AI%20Interview%20Questions"
+    swagger_url = f"{PLATFORM_URL}/swagger/"
+
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🤖 AI Intervyuni boshlash", url=ai_url)]
+        [InlineKeyboardButton("🤖 AI Intervyu savollarini ko'rish", url=swagger_url)],
     ])
     await update.message.reply_text(
         "🤖 <b>AI Mock Intervyu</b>\n\n"
-        "Sun'iy intellekt yordamida haqiqiy intervyu simulyatsiyasini boshlang.\n"
-        "Savollar, javoblar, baholash va qayta aloqa — barchasi avtomatik!\n\n"
-        "👇 Quyidagi tugmani bosing:",
+        "Platforma orqali AI intervyuga kirish:\n"
+        f"🔗 {swagger_url}\n\n"
+        "<i>Swagger sahifasida AI Interview Questions bo'limini oching,</i>\n"
+        "<i>so'ng \'Authorize\' tugmasini bosib JWT tokeningizni kiriting.</i>\n\n"
+        "📌 <b>Frontendingiz tayyor bo'lgach, bu URL ni yangilang:</b>\n"
+        "<code>PLATFORM_URL/ai-interview/</code>",
         parse_mode=ParseMode.HTML,
         reply_markup=keyboard,
     )
@@ -1052,15 +1118,30 @@ def build_conversation_handler() -> ConversationHandler:
     )
 
 
+async def post_init(application):
+    """Bot ishga tushganda komandalar menyusini o'rnatadi"""
+    commands = [
+        BotCommand("start", "Botni qayta ishga tushirish"),
+        BotCommand("vacancies", "Mos vakansiyalarni ko'rish"),
+        BotCommand("ai_interview", "AI Mock Intervyuni boshlash"),
+        BotCommand("create_vacancy", "Yangi vakansiya yaratish (HR)"),
+        BotCommand("my_vacancies", "Mening vakansiyalarim (HR)"),
+        BotCommand("cancel", "Amalni bekor qilish"),
+    ]
+    await application.bot.set_my_commands(commands)
+
+
+
 def run_bot():
     if not BOT_TOKEN:
-        raise ValueError("TELEGRAM_BOT_TOKEN muhit o'zgaruvchisi topilmadi!")
+        raise ValueError("TELEGRAM_BOT_TOKEN_2 muhit o'zgaruvchisi topilmadi!")
 
     logger.info(f"🤖 HR Bot ishga tushmoqda... (@{BOT_USERNAME})")
 
     app = (
         ApplicationBuilder()
         .token(BOT_TOKEN)
+        .post_init(post_init)
         .build()
     )
 

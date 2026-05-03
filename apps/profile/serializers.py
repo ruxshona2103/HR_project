@@ -40,18 +40,15 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
 
     def get_vacancies_open(self, obj) -> int:
         from apps.vacancies.models import Vacancy as VacancyModel
-
         return self._company_vacancies(obj).filter(
             status=VacancyModel.Status.OPEN
         ).count()
 
     def get_vacancies_closed(self, obj) -> int:
         from apps.vacancies.models import Vacancy as VacancyModel
-
         return self._company_vacancies(obj).filter(
             status=VacancyModel.Status.CLOSED
         ).count()
-
 
 class AIInterviewQuestionSerializer(serializers.ModelSerializer):
     class Meta:

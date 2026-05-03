@@ -1,7 +1,17 @@
 from django.db import models
 
-
 class Vacancy(models.Model):
+    class Status(models.TextChoices):
+        OPEN = 'OPEN', "Ochiq"
+        CLOSED = 'CLOSED', "Yopiq"
+
+
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.OPEN,
+        help_text="Vakansiya holati"
+    )
     TYPE_CHOICES = [
         ("system", "System"),
         ("national", "National"),
@@ -82,9 +92,6 @@ class Vacancy(models.Model):
         related_name='vacancies'
     )
     # Asosiy ma'lumotlar
-    photo = models.ImageField(
-        upload_to="vacancies/photos/", null=True, blank=True
-    )
     industry = models.CharField(
         max_length=255,
         help_text="Kasb sohasi",

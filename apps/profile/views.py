@@ -1,6 +1,8 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.vacancies.models import Vacancy
@@ -11,70 +13,49 @@ from .serializers import CompanyProfileSerializer, AIInterviewQuestionSerializer
 
 @extend_schema(tags=["Company Profile"])
 class CompanyProfileViewSet(viewsets.ModelViewSet):
-    """
-    Tashkilot (kompaniya) profili uchun API.
-
-    - Kompaniya haqida qisqacha ma'lumotni ko'rish va tahrirlash
-    - Vakansiyalar statistikasi (umumiy, ochiq, yopilgan)
-    """
-
-    queryset = CompanyProfile.objects.select_related("user").all()
+    permission_classes = [IsAuthenticated]
     serializer_class = CompanyProfileSerializer
+    queryset = CompanyProfile.objects.all()
 
     def get_queryset(self):
-        user = self.request.user
-        if not user.is_authenticated:
-            return CompanyProfile.objects.none()
-        return CompanyProfile.objects.filter(user=user)
+        # Faqat o'zining profilini ko'rsin
+        return CompanyProfile.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # STANDART POST SO'ROVI UCHUN: user_id ni biriktiramiz
+        if CompanyProfile.objects.filter(user=self.request.user).exists():
+            raise ValidationError({"detail": "Sizda allaqachon profil mavjud."})
+        serializer.save(user=self.request.user)
 
     @action(detail=False, methods=["get", "put", "patch"], url_path="me")
     def me(self, request):
-        """
-        Joriy tizimga kirgan foydalanuvchining kompaniya profilini
-        ko'rish va tahrirlash uchun endpoint.
-        """
+        # Bu qism to'g'ri, get_or_create user_id ni avtomatik qo'shadi
         profile, _ = CompanyProfile.objects.get_or_create(user=request.user)
-
         if request.method in ("PUT", "PATCH"):
-            serializer = self.get_serializer(
-                profile,
-                data=request.data,
-                partial=request.method == "PATCH",
-            )
+            serializer = self.get_serializer(profile, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-
         serializer = self.get_serializer(profile)
         return Response(serializer.data)
 
 
 @extend_schema(tags=["Company Vacancies"])
 class CompanyVacancyViewSet(viewsets.ModelViewSet):
-    """
-    Tashkilotga tegishli vakansiyalar uchun panel.
-
-    - Kompaniya yuklagan vakansiyalar ro'yxati
-    - Yangi vakansiya yaratish
-    """
-
     serializer_class = VacancySerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        if not user.is_authenticated:
-            return Vacancy.objects.none()
-
-        try:
-            company = user.company_profile
-        except CompanyProfile.DoesNotExist:
-            return Vacancy.objects.none()
-
-        return Vacancy.objects.filter(company=company)
+        # Userning kompaniyasiga tegishli vakansiyalarni olish
+        return Vacancy.objects.filter(company__user=self.request.user)
 
     def perform_create(self, serializer):
-        company = self.request.user.company_profile
-        serializer.save(company=company)
+        # Vakansiyani userning kompaniyasiga bog'laymiz
+        try:
+            company = self.request.user.company_profile
+            serializer.save(company=company)
+        except CompanyProfile.DoesNotExist:
+            raise ValidationError({"detail": "Avval kompaniya profili yarating."})
 
 
 @extend_schema(tags=["AI Interview Questions"])
