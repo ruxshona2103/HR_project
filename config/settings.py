@@ -45,6 +45,7 @@ LOCAL_APPS = [
     'apps.landing_page',
     'apps.choose_roles',
     'apps.resume',
+    'apps.ai_engine',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -52,6 +53,8 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+#GEMINI API KEY
+GEMINI_API_KEY = os.getenv("GEMINI_KEY")
 
 
 MIDDLEWARE = [
