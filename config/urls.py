@@ -70,6 +70,8 @@ urlpatterns = [
     path("api/profile/", include("apps.profile.urls")),
     path("api/landing_page/", include("apps.landing_page.urls")),
     path("api/resume/", include("apps.resume.urls")),
+    path('api/ai_interview/', include('apps.ai_engine.urls')),
+
 
     #  Telegram Bot endpointlari
 
