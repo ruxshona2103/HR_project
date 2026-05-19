@@ -19,16 +19,26 @@ from .serializers import (
     YutuqSerializer, RoyxatdanOtishSerializer
 )
 
-
 SECTION_REGISTRY = {
-    'konikmalar':    (Konikma,      KonikmaSerializer),
-    'tillar':        (Til,           TilSerializer),
-    'ish-tajribasi': (IshTajribasi,  IshTajribasiSerializer),
-    'talim':         (Talim,         TalimSerializer),
-    'sertifikatlar': (Sertifikat,    SertifikatSerializer),
-    'maqolalar':     (Maqola,        MaqolaSerializer),
-    'qiziqishlar':   (Qiziqish,      QiziqishSerializer),
-    'yutuqlar':      (Yutuq,         YutuqSerializer),
+
+    'konikmalar': (Konikma, KonikmaSerializer),
+    'tillar': (Til, TilSerializer),
+    'ish-tajribasi': (IshTajribasi, IshTajribasiSerializer),
+    'talim': (Talim, TalimSerializer),
+    'sertifikatlar': (Sertifikat, SertifikatSerializer),
+    'maqolalar': (Maqola, MaqolaSerializer),
+    'qiziqishlar': (Qiziqish, QiziqishSerializer),
+    'yutuqlar': (Yutuq, YutuqSerializer),
+
+
+    'konikmalar uchun': (Konikma, KonikmaSerializer),
+    'tillar uchun': (Til, TilSerializer),
+    'ish-tajribasi uchun': (IshTajribasi, IshTajribasiSerializer),
+    'talim uchun': (Talim, TalimSerializer),
+    'sertifikatlar uchun': (Sertifikat, SertifikatSerializer),
+    'maqolalar uchun': (Maqola, MaqolaSerializer),
+    'qiziqishlar uchun': (Qiziqish, QiziqishSerializer),
+    'yutuglar uchun': (Yutuq, YutuqSerializer),
 }
 
 SECTION_EXAMPLES = {
@@ -91,10 +101,19 @@ SECTION_EXAMPLES = {
 class ResumeView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Resume ma'lumotlarini olish",
+        responses={200: ResumeSerializer}
+    )
     def get(self, request):
         resume = get_object_or_404(Resume, foydalanuvchi=request.user)
         return Response(ResumeSerializer(resume).data)
 
+    @extend_schema(
+        summary="Yangi resume yaratish",
+        request=ResumeSerializer,
+        responses={201: ResumeSerializer}
+    )
     def post(self, request):
         if Resume.objects.filter(foydalanuvchi=request.user).exists():
             return Response(
@@ -115,6 +134,22 @@ class ResumeView(APIView):
 
         return Response(ResumeSerializer(resume).data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(
+        summary="Resume ma'lumotlarini yangilash",
+        request=ResumeSerializer,  # ← Bu qo'shildi!
+        responses={200: ResumeSerializer},
+        examples=[
+            OpenApiExample(
+                'Resume yangilash',
+                value={
+                    "mutaxasislik": "Dasturlash",
+                    "lavozim": "Senior Python Developer",
+                    "men_haqimda": "10 yillik tajribaga ega Python dasturchi"
+                },
+                request_only=True
+            )
+        ]
+    )
     def put(self, request):
         resume = get_object_or_404(Resume, foydalanuvchi=request.user)
         resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
