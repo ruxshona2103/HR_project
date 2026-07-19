@@ -75,7 +75,6 @@ class Vacancy(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar")
 
-    # Asosiy ma'lumotlar
     photo = models.ImageField(
         upload_to="vacancies/photos/", null=True, blank=True
     )
@@ -94,7 +93,6 @@ class Vacancy(models.Model):
         help_text="Kerakli ko'nikmalar (vergul bilan ajratib yozing)"
     )
 
-    # Maosh va talablar
     salary_level = models.CharField(
         max_length=255,
         null=True,
@@ -134,7 +132,6 @@ class Vacancy(models.Model):
         choices=EDUCATION_LEVEL_CHOICES,
     )
 
-    # Hudud va ish turi
     region = models.CharField(
         max_length=255,
         help_text="Viloyat",
@@ -157,6 +154,8 @@ class Vacancy(models.Model):
         choices=DAILY_HOURS_CHOICES,
     )
     company_address = models.TextField(
+        null=True,
+        blank=True,
         help_text="Korxona manzili (matn ko'rinishida)",
     )
     map_lat = models.DecimalField(
@@ -172,7 +171,6 @@ class Vacancy(models.Model):
         blank=True,
     )
 
-    # Muddat va izoh
     publish_start = models.DateField()
     publish_end = models.DateField()
     ai_improved_description = models.TextField(
@@ -181,7 +179,6 @@ class Vacancy(models.Model):
         help_text="AI tomonidan takomillashtirilgan tavsif (ixtiyoriy)",
     )
 
-    # Mavjud maydonlarni moslik uchun qoldiramiz
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="system")
     min_experience = models.IntegerField(default=0)
 
