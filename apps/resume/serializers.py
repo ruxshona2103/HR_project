@@ -129,7 +129,7 @@ class ResumeSerializer(serializers.ModelSerializer):
             'profil_rasm', 'yaratilgan', 'yangilangan',
             'aloqa', 'konikmalar', 'tillar', 'ish_tajribalari',
             'talim_malumotlari', 'sertifikatlar', 'maqolalar',
-            'qiziqishlar', 'yutuqlar',
+            'qiziqishlar', 'yutuqlar','resume_fayli'
         ]
 
 
