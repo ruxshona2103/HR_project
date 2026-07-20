@@ -6,6 +6,9 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
+from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import FormParser
+
 
 from .models import (
     Resume, Aloqa, Konikma, Til,
@@ -90,6 +93,12 @@ SECTION_EXAMPLES = {
 @extend_schema(tags=["Resume"])
 class ResumeView(APIView):
     permission_classes = [IsAuthenticated]
+
+    parser_classes = [
+        MultiPartParser,
+        FormParser
+    ]
+
 
     def get(self, request):
         resume = get_object_or_404(Resume, foydalanuvchi=request.user)
