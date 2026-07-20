@@ -1,9 +1,10 @@
 import { route, startRouter, setNotFound } from "./router.js";
 import { store } from "./store.js";
+import { initFab } from "./fab.js";
 import "./nav.js";
 
 import { renderLanding } from "./pages/landing.js";
-import { renderLogin, renderRegister, renderVerify, renderPhoneAuth } from "./pages/auth.js";
+import { renderRolePicker, renderLogin, renderRegister, renderVerify, renderPhoneAuth } from "./pages/auth.js";
 import { renderVacancies } from "./pages/vacancies.js";
 import {
   renderCandidateHome,
@@ -36,7 +37,9 @@ route("/", renderLanding);
 route("/vacancies", renderVacancies, () => (store.isAuthed() ? null : "/login"));
 
 // Auth
-route("/login", renderLogin, guestOnly);
+route("/login", renderRolePicker, guestOnly);
+route("/login/candidate", () => renderLogin("candidate"), guestOnly);
+route("/login/organization", () => renderLogin("organization"), guestOnly);
 route("/register/:kind", (p) => renderRegister(p.kind), guestOnly);
 route("/verify", renderVerify, guestOnly);
 route("/phone-auth", renderPhoneAuth, guestOnly);
@@ -62,3 +65,4 @@ setNotFound(
 );
 
 startRouter();
+initFab();
