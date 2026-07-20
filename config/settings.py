@@ -43,7 +43,6 @@ LOCAL_APPS = [
     'apps.vacancies',
     "apps.profile",
     'apps.landing_page',
-    'apps.choose_roles',
     'apps.resume',
     'apps.ai_engine',
 ]
@@ -259,4 +258,3 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
 
 
-print("SPECTACULAR SETTINGS LOADED")

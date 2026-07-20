@@ -82,6 +82,14 @@ class Vacancy(models.Model):
         ("FIELD", "Joylarga chiqish shaklida"),
     ]
 
+    company = models.ForeignKey(
+        'profile.CompanyProfile',
+        on_delete=models.CASCADE,
+        related_name="vacancies",
+        null=True,
+        blank=True
+    )
+
     title = models.CharField(max_length=255)
     description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar")
 
@@ -190,8 +198,6 @@ class Vacancy(models.Model):
         null=True,
         blank=True,
         help_text="Korxona manzili (matn ko'rinishida)",
-        null=True,
-        blank=True
     )
     map_lat = models.DecimalField(
         max_digits=9,

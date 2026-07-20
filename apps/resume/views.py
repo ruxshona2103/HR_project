@@ -2,11 +2,10 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
+import json
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.parsers import FormParser
 
 
@@ -96,7 +95,8 @@ class ResumeView(APIView):
 
     parser_classes = [
         MultiPartParser,
-        FormParser
+        FormParser,
+        JSONParser
     ]
 
 
@@ -104,19 +104,69 @@ class ResumeView(APIView):
         resume = get_object_or_404(Resume, foydalanuvchi=request.user)
         return Response(ResumeSerializer(resume).data)
 
+    # def post(self, request):
+    #     if Resume.objects.filter(foydalanuvchi=request.user).exists():
+    #         return Response(
+    #             {'xato': 'Resume allaqachon mavjud. PUT orqali yangilang.'},
+    #             status=status.HTTP_400_BAD_REQUEST
+    #         )
+    #     resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
+    #     resume_serializer = ResumeSerializer(data=resume_data)
+    #     if not resume_serializer.is_valid():
+    #         return Response(resume_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     resume = resume_serializer.save(foydalanuvchi=request.user)
+    #
+    #     aloqa_data = request.data.get('aloqa')
+    #     if aloqa_data:
+    #         aloqa_serializer = AloqaSerializer(data=aloqa_data)
+    #         if aloqa_serializer.is_valid():
+    #             aloqa_serializer.save(resume=resume)
+    #
+    #     return Response(ResumeSerializer(resume).data, status=status.HTTP_201_CREATED)
+    #
+    # def put(self, request):
+    #     resume = get_object_or_404(Resume, foydalanuvchi=request.user)
+    #     resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
+    #     if resume_data:
+    #         resume_serializer = ResumeSerializer(resume, data=resume_data, partial=True)
+    #         if not resume_serializer.is_valid():
+    #             return Response(resume_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #         resume_serializer.save()
+    #
+    #     aloqa_data = request.data.get('aloqa')
+    #     if aloqa_data:
+    #         aloqa, _ = Aloqa.objects.get_or_create(resume=resume)
+    #         aloqa_serializer = AloqaSerializer(aloqa, data=aloqa_data, partial=True)
+    #         if aloqa_serializer.is_valid():
+    #             aloqa_serializer.save()
+    #
+    #     return Response(ResumeSerializer(resume).data)
     def post(self, request):
         if Resume.objects.filter(foydalanuvchi=request.user).exists():
             return Response(
                 {'xato': 'Resume allaqachon mavjud. PUT orqali yangilang.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
+
+        # request.data dan xavfsiz nusxa olamiz (FormData kelganda ham to'g'ri ishlashi uchun)
+        data = request.data.copy() if hasattr(request.data, 'copy') else request.data
+        aloqa_data = data.get('aloqa')
+
+        # Agar aloqa ma'lumoti frontenddan obyekt emas, string (matn) bo'lib kelib qolsa, uni dict-ga o'giramiz
+        if isinstance(aloqa_data, str):
+            try:
+                aloqa_data = json.loads(aloqa_data)
+            except json.JSONDecodeError:
+                aloqa_data = None
+
+        resume_data = {k: v for k, v in data.items() if k != 'aloqa'}
         resume_serializer = ResumeSerializer(data=resume_data)
+
         if not resume_serializer.is_valid():
             return Response(resume_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         resume = resume_serializer.save(foydalanuvchi=request.user)
 
-        aloqa_data = request.data.get('aloqa')
         if aloqa_data:
             aloqa_serializer = AloqaSerializer(data=aloqa_data)
             if aloqa_serializer.is_valid():
@@ -126,14 +176,24 @@ class ResumeView(APIView):
 
     def put(self, request):
         resume = get_object_or_404(Resume, foydalanuvchi=request.user)
-        resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
+
+        data = request.data.copy() if hasattr(request.data, 'copy') else request.data
+        resume_data = {k: v for k, v in data.items() if k != 'aloqa'}
+
         if resume_data:
             resume_serializer = ResumeSerializer(resume, data=resume_data, partial=True)
             if not resume_serializer.is_valid():
                 return Response(resume_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             resume_serializer.save()
 
-        aloqa_data = request.data.get('aloqa')
+        aloqa_data = data.get('aloqa')
+        # Bu yerda ham string bo'lib kelsa dict-ga o'giramiz
+        if isinstance(aloqa_data, str):
+            try:
+                aloqa_data = json.loads(aloqa_data)
+            except json.JSONDecodeError:
+                aloqa_data = None
+
         if aloqa_data:
             aloqa, _ = Aloqa.objects.get_or_create(resume=resume)
             aloqa_serializer = AloqaSerializer(aloqa, data=aloqa_data, partial=True)
@@ -141,7 +201,6 @@ class ResumeView(APIView):
                 aloqa_serializer.save()
 
         return Response(ResumeSerializer(resume).data)
-
 
 
 
