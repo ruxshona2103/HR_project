@@ -30,6 +30,12 @@ class Resume(models.Model):
         null=True,blank=True,
         verbose_name='Profil rasmi'
     )
+    resume_fayli = models.FileField(
+        upload_to="resume/fayllar/",
+        null=True,
+        blank=True,
+        verbose_name="Resume fayli"
+    )
     yaratilgan = models.DateTimeField(auto_now_add=True)
     yangilangan = models.DateTimeField(auto_now=True)
 
