@@ -118,6 +118,33 @@ HR_frontend/
 └── README.md
 ```
 
+## Dizayn ilhomi — career.edu.uz
+
+Foydalanuvchi taqdim etgan skrinshotlar asosida quyidagi tuzilma **career.edu.uz** saytiga
+o'xshab qurildi (ranglar va shrift esa loyihaning o'z uslubida — zumrad-yashil/oltin,
+Fraunces/Manrope — qoldirildi):
+
+- **Hero banner** — to'liq enli rangli fon, ikki qatorli sarlavha, statistik "pill" belgilar,
+  ikkita CTA tugma va o'ng tomonda vizual blok.
+- **"Eng so'nggi vakansiyalar"** bo'limi — bosh sahifada haqiqiy (yoki, mehmon uchun, aniq
+  "namuna" deb belgilangan) vakansiya kartalari: "Yangi" belgisi, saqlash ikonkasi, teglar
+  qatori, maosh, qisqa tavsif, "Ko'proq" havolasi, kompaniya nomi, manzil va statistika.
+- **"Platforma haqida"** va **"AI imkoniyatlari"** — rangli ikon-quti + sarlavha + tavsif
+  formatidagi kartalar qatori.
+- Pastki **CTA banner** (hero uslubidagi qisqa blok) va **ko'p ustunli footer**.
+- **Vakansiyalar sahifasi** — chap tomonda to'liq filtr paneli (hudud, ish joyi, tajriba,
+  ta'lim darajasi, bandlik turi) + o'ng tomonda karta setkasi, xuddi original saytdagidek.
+- **Kirish oqimi** — avval "Foydalanuvchi turini tanlang" (Nomzod / Tashkilot) katta kartali
+  ekran, so'ng tanlangan turga mos login/ro'yxatdan o'tish formasi.
+- **Pastki o'ng burchakdagi suzuvchi AI yordamchi tugmasi** — bosilganda tezkor havolalar
+  paneli ochiladi (vakansiya qidirish, AI rezyume tekshiruvi, rezyume tuzish).
+
+**Ataylab ko'chirilmagan qismlar:** original saytdagi **Frilanserlar**, **Tadbirlar** va
+**Karyera markazlari** bo'limlari — bu loyihaning backendida bunga mos endpoint yo'q. Soxta/
+ishlamaydigan bo'limlar yaratmaslik uchun ular qo'shilmadi. Shuningdek, original saytning
+davlat ID (prof.edu.uz/HEMIS) orqali kirish tizimi o'rniga o'zimizning email/telefon
+autentifikatsiyamiz ishlatildi, chunki bu backendda shunday joriy etilgan.
+
 ## Dizayn yo'nalishi
 
 - **Palitra**: chuqur o'rmon-ko'mir foni (`#0d1512`), zumrad-yashil asosiy rang (o'sish/ishga
