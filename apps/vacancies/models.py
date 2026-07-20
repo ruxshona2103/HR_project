@@ -1,7 +1,17 @@
 from django.db import models
 
-
 class Vacancy(models.Model):
+    class Status(models.TextChoices):
+        OPEN = 'OPEN', "Ochiq"
+        CLOSED = 'CLOSED', "Yopiq"
+
+
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.OPEN,
+        help_text="Vakansiya holati"
+    )
     TYPE_CHOICES = [
         ("system", "System"),
         ("national", "National"),
@@ -78,19 +88,28 @@ class Vacancy(models.Model):
     photo = models.ImageField(
         upload_to="vacancies/photos/", null=True, blank=True
     )
+    # Asosiy ma'lumotlar
     industry = models.CharField(
         max_length=255,
         help_text="Kasb sohasi",
+        null=True,
+        blank=True
     )
     specialization = models.CharField(
         max_length=255,
         help_text="Kasb yo'nalishi",
+        null=True,
+        blank=True
     )
     vacant_slots = models.PositiveIntegerField(
-        default=1, help_text="Vakant o'rinlari soni"
+        default=1, help_text="Vakant o'rinlari soni",
+        null=True,
+        blank=True
     )
     required_skills = models.TextField(
-        help_text="Kerakli ko'nikmalar (vergul bilan ajratib yozing)"
+        help_text="Kerakli ko'nikmalar (vergul bilan ajratib yozing)",
+    null = True,
+    blank = True
     )
 
     salary_level = models.CharField(
@@ -122,41 +141,57 @@ class Vacancy(models.Model):
     employment_type = models.CharField(
         max_length=20,
         choices=EMPLOYMENT_TYPE_CHOICES,
+        null=True,
+        blank=True
     )
     experience_level = models.CharField(
         max_length=20,
         choices=EXPERIENCE_LEVEL_CHOICES,
+        null=True,
+        blank=True
     )
     education_level = models.CharField(
         max_length=20,
         choices=EDUCATION_LEVEL_CHOICES,
+        null=True,
+        blank=True
     )
 
     region = models.CharField(
         max_length=255,
         help_text="Viloyat",
+        null=True,
+        blank=True
     )
     district = models.CharField(
         max_length=255,
         help_text="Tuman / Shahar",
+        null=True,
+        blank=True
     )
     work_formats = models.JSONField(
         default=list,
+        null=True,
         blank=True,
         help_text="Ish turi (bir nechta qiymat: OFfICE/REMOTE/HYBRID/FIELD)",
     )
     work_schedule = models.CharField(
         max_length=20,
         choices=WORK_SCHEDULE_CHOICES,
+        null=True,
+        blank=True
     )
     daily_hours = models.CharField(
         max_length=20,
         choices=DAILY_HOURS_CHOICES,
+        default='8'
     )
     company_address = models.TextField(
         null=True,
         blank=True,
         help_text="Korxona manzili (matn ko'rinishida)",
+        null=True,
+        blank=True
     )
     map_lat = models.DecimalField(
         max_digits=9,

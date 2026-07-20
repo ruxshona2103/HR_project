@@ -1,0 +1,14 @@
+SECRET_KEY=your seckret key
+DEBUG=True
+TELEGRAM_BOT_TOKEN=mmmmmmmmmmmmmmmmmmm
+BOT_USERNAME=***********
+EMAIL=******************
+
+EMAIL_HOST_USER=******************
+EMAIL_HOST_PASSWORD=***************
+DEFAULT_FROM_EMAIL=*********************
+
+
+TELEGRAM_BOT_TOKEN_2=*******************************************************
+BOT_USERNAME_2=****************
+PLATFORM_URL=*****************

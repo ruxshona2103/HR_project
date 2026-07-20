@@ -2,10 +2,10 @@
 __pycache__/
 *.py[codz]
 *$py.class
-
+media/
+static/collected/
 # C extensions
 *.so
-.idea
 # Distribution / packaging
 .Python
 build/
@@ -206,3 +206,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+*.swp
+*.swo
+
+.DS_Store
+Thumbs.db
+

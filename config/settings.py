@@ -32,17 +32,20 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
-    # "rest_framework_simplejwt.token_blacklist",  # ← COMMENT!
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     'drf_spectacular',
 ]
 
 LOCAL_APPS = [
-    "apps.users",
-    "apps.interviews",
+    "apps.users1",
     'apps.user_profile',
     'apps.vacancies',
+    "apps.profile",
     'apps.landing_page',
+    'apps.choose_roles',
+    'apps.resume',
+    'apps.ai_engine',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -50,6 +53,8 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+#GEMINI API KEY
+GEMINI_API_KEY = os.getenv("GEMINI_KEY")
 
 
 MIDDLEWARE = [
@@ -127,7 +132,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users1.User'
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -155,8 +160,11 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'API HR',
     'DESCRIPTION': 'HR PROJECT API hujjatlari',
-    'VERSION': 'v1',
+    'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SORT_OPERATIONS': True,
+    'SORT_OPERATION_PARAMETERS': True,
+    'COMPONENT_SPLIT_REQUEST': True,
     'SECURITY': [{'BearerAuth': []}],
     'COMPONENTS': {
         'securitySchemes': {
@@ -169,17 +177,25 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+#     "ROTATE_REFRESH_TOKENS": True,
+#     "BLACKLIST_AFTER_ROTATION": True,
+#     "UPDATE_LAST_LOGIN": True,
+#     "ALGORITHM": "HS256",
+#     "AUTH_HEADER_TYPES": ("Bearer",),
+#     "USER_ID_FIELD": "id",
+#     "USER_ID_CLAIM": "user_id",
+# }
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
-    "ALGORITHM": "HS256",
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
+
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
@@ -191,11 +207,14 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-AUTHENTICATION_BACKENDS = [
-    'apps.users.backends.EmailOrPhoneBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
+# AUTHENTICATION_BACKENDS = [
+#     'apps.users.backends.EmailOrPhoneBackend',
+#     'django.contrib.auth.backends.ModelBackend',
+# ]
 
+AUTHENTICATION_BACKENDS = [
+    'apps.users1.backends.EmailBackend',
+]
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -204,6 +223,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")
+BOT_USERNAME = os.getenv("BOT_USERNAME")
 
 TESTING = False
 
@@ -230,10 +250,13 @@ TESTING = False
 # ==================== EMAIL SETTINGS ====================
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # ← Comment!
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # ← Uncomment!
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
+
+
+print("SPECTACULAR SETTINGS LOADED")
