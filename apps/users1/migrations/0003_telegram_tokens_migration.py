@@ -11,7 +11,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("users1", "0002_alter_user_groups_alter_user_is_superuser_and_more"),
+        ("users1", "0002_initial"),
         ("vacancies", "0004_vacancy_company"),
     ]
 
