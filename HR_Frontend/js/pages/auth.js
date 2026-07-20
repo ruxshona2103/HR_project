@@ -4,14 +4,46 @@ import { store } from "../store.js";
 import { toast, esc } from "../components.js";
 import { navigate } from "../router.js";
 
-function authShell(activeTab, body) {
+/* ----------------------------- ROLE PICKER ----------------------------- */
+export function renderRolePicker() {
+  const html = `
+    <div class="container section-tight text-center">
+      <div class="eyebrow" style="justify-content:center">Nomzod va kompaniyalar uchun yagona platforma</div>
+      <h2 style="margin-bottom:34px">Foydalanuvchi turini tanlang</h2>
+      <div class="role-picker-grid">
+        <button class="role-picker-card" data-nav="/login/candidate">
+          <span class="role-picker-arrow">↗</span>
+          <div class="role-picker-icon">🎓</div>
+          <h3 style="margin-bottom:4px">Nomzod</h3>
+          <p class="mb-0">Talaba yoki ish qidiruvchi sifatida kiring</p>
+        </button>
+        <button class="role-picker-card" data-nav="/login/organization">
+          <span class="role-picker-arrow">↗</span>
+          <div class="role-picker-icon">🏢</div>
+          <h3 style="margin-bottom:4px">Tashkilot</h3>
+          <p class="mb-0">Kompaniya yoki xodim sifatida kiring</p>
+        </button>
+      </div>
+    </div>`;
+  return {
+    html,
+    mount(root) {
+      root.querySelectorAll("[data-nav]").forEach((el) => el.addEventListener("click", () => navigate(el.getAttribute("data-nav"))));
+    },
+  };
+}
+
+function authShell(mode, body, backTo) {
+  const isLogin = mode === "login-candidate" || mode === "login-organization";
+  const loginHref = mode === "login-organization" ? "/login/organization" : "/login/candidate";
   return `
     <div class="container">
       <div class="auth-shell">
+        ${backTo ? `<div class="row" style="margin-bottom:14px"><a data-nav="${backTo}">← Orqaga</a></div>` : ""}
         <div class="auth-tabbar">
-          <button data-nav="/login" class="${activeTab === "login" ? "active" : ""}">Kirish</button>
-          <button data-nav="/register/candidate" class="${activeTab === "candidate" ? "active" : ""}">Nomzod</button>
-          <button data-nav="/register/organization" class="${activeTab === "organization" ? "active" : ""}">Kompaniya</button>
+          <button data-nav="${loginHref}" class="${isLogin ? "active" : ""}">Kirish</button>
+          <button data-nav="/register/candidate" class="${mode === "register-candidate" ? "active" : ""}">Nomzod</button>
+          <button data-nav="/register/organization" class="${mode === "register-organization" ? "active" : ""}">Kompaniya</button>
         </div>
         <div class="card card-pad-lg">${body}</div>
         <div class="auth-switch">
@@ -34,11 +66,12 @@ function afterLogin(payload) {
 }
 
 /* ----------------------------- LOGIN ----------------------------- */
-export function renderLogin() {
+export function renderLogin(role) {
+  const isOrg = role === "organization";
   const html = authShell(
-    "login",
+    isOrg ? "login-organization" : "login-candidate",
     `
-    <h2>Tizimga kirish</h2>
+    <h2>${isOrg ? "Tashkilot sifatida kirish" : "Nomzod sifatida kirish"}</h2>
     <p class="muted">Email va parolingiz orqali kiring.</p>
     <form id="login-form" class="stack">
       <div class="field"><label>Email</label><input type="email" name="email" required placeholder="siz@mail.com" /></div>
@@ -46,7 +79,8 @@ export function renderLogin() {
       <div id="login-error" class="form-error" style="display:none"></div>
       <button class="btn btn-primary btn-block" type="submit">Kirish</button>
     </form>
-  `
+  `,
+    "/login"
   );
   return {
     html,
@@ -81,7 +115,7 @@ export function renderLogin() {
 export function renderRegister(kind) {
   const isOrg = kind === "organization";
   const html = authShell(
-    isOrg ? "organization" : "candidate",
+    isOrg ? "register-organization" : "register-candidate",
     `
     <h2>${isOrg ? "Kompaniya sifatida ro'yxatdan o'tish" : "Nomzod sifatida ro'yxatdan o'tish"}</h2>
     <p class="muted">Email orqali ro'yxatdan o'ting — keyingi qadamda tasdiqlash kodi yuboriladi.</p>

@@ -6,6 +6,7 @@ from .serializers import VacancySerializer
 
 @extend_schema(tags=["Vacancies"])
 class VacancyViewSet(viewsets.ModelViewSet):
+    permission_classes = []
     queryset = Vacancy.objects.all()
     serializer_class = VacancySerializer
 

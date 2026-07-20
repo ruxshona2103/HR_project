@@ -319,3 +319,159 @@ textarea{ resize: vertical; min-height: 90px; }
 .kv:last-child{ border-bottom:none; }
 .kv span{ color: var(--text-mute); }
 .kv b{ color: var(--text); font-weight:700; }
+
+/* =========================================================
+   HERO v2 — career.edu.uz uslubidagi to'liq enli banner
+   ========================================================= */
+.hero-v2{
+  position: relative; overflow: hidden;
+  background: radial-gradient(1400px 700px at 15% 0%, rgba(255,255,255,.08), transparent 55%), linear-gradient(135deg, var(--primary-dim), #123d2f 65%, var(--bg-2));
+  padding: 56px 0 44px;
+}
+.hero-v2::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    repeating-radial-gradient(circle at 78% 35%, transparent 0 46px, rgba(255,255,255,.05) 47px 48px);
+  opacity:.5;
+}
+.hero-v2-inner{ position:relative; display:grid; grid-template-columns: 1.15fr .85fr; gap:36px; align-items:center; }
+@media (max-width: 960px){ .hero-v2-inner{ grid-template-columns:1fr; } }
+.hero-v2 h1{ color:#fff; font-size: clamp(30px,4.4vw,46px); line-height:1.08; }
+.hero-v2 p.hero-v2-lede{ color: rgba(255,255,255,.82); font-size:16px; max-width: 48ch; }
+.hero-v2-pills{ display:flex; gap:10px; flex-wrap:wrap; margin: 18px 0 22px; }
+.hero-v2-pill{
+  display:inline-flex; align-items:center; gap:7px; background: rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.22); color:#fff; font-size:13px; font-weight:600;
+  padding:7px 14px; border-radius: var(--radius-pill); backdrop-filter: blur(4px);
+}
+.hero-v2-actions{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.store-badges{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+.store-badge{
+  display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px;
+  background: rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:12.5px; font-weight:600;
+}
+.hero-v2-art{
+  border-radius: var(--radius-l); background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+  min-height: 260px; display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+
+/* =========================================================
+   Vacancy card v2 — career.edu.uz'dagi kabi bo'lim-bo'lim tuzilish
+   ========================================================= */
+.vac-card-v2{ display:flex; flex-direction:column; gap:10px; position:relative; }
+.vac-card-v2-top{ display:flex; align-items:flex-start; justify-content:space-between; }
+.vac-new-badge{
+  font-family: var(--font-mono); font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  background: rgba(47,174,122,.16); color: var(--primary); border:1px solid rgba(47,174,122,.35);
+  padding:2px 9px; border-radius: var(--radius-pill); text-transform:uppercase;
+}
+.vac-save-btn{
+  width:28px; height:28px; border-radius:8px; border:1px solid var(--border); background: var(--surface-2);
+  color: var(--text-mute); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;
+}
+.vac-card-v2 h3{ font-size:18px; margin: 2px 0 0; }
+.vac-tags-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.vac-tag{
+  font-size:11.5px; padding:3px 9px; border-radius: var(--radius-pill); background: var(--surface-2);
+  border:1px solid var(--border-soft); color: var(--text-dim);
+}
+.vac-salary-v2{ font-family: var(--font-mono); font-weight:700; font-size:17px; color: var(--gold); }
+.vac-desc-v2{ font-size:13.5px; color: var(--text-dim); max-height:3.6em; overflow:hidden; margin:0; }
+.vac-more-link{ font-size:12.5px; font-weight:700; color: var(--primary); cursor:pointer; }
+.vac-company-v2{ font-size:12.5px; font-weight:700; color: var(--text); }
+.vac-loc-v2{ font-size:12px; color: var(--text-mute); display:flex; align-items:center; gap:4px; }
+.vac-stats-row{ display:flex; gap:14px; font-size:11.5px; color: var(--text-mute); font-family: var(--font-mono); border-top:1px dashed var(--border-soft); padding-top:8px; margin-top:2px; }
+
+/* =========================================================
+   Feature icon boxes ("Platforma haqida" uslubi)
+   ========================================================= */
+.feature-row{ display:flex; align-items:flex-start; gap:14px; }
+.feature-icon-box{
+  flex:none; width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+  background: rgba(47,174,122,.14); color: var(--primary); font-size:20px; border:1px solid rgba(47,174,122,.3);
+}
+.feature-icon-box.gold{ background: rgba(232,184,75,.14); color: var(--gold); border-color: rgba(232,184,75,.32); }
+.feature-row h4{ margin:0 0 4px; font-size:15.5px; font-family: var(--font-body); font-weight:800; color:var(--text); }
+.feature-row p{ margin:0; font-size:13px; }
+
+/* =========================================================
+   CTA banner (pastki, hero'ga o'xshash)
+   ========================================================= */
+.cta-banner{
+  background: linear-gradient(120deg, var(--primary-dim), #123d2f 70%);
+  border-radius: var(--radius-l); padding: 40px 40px; color:#fff;
+  display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+}
+.cta-banner h2{ color:#fff; margin-bottom:6px; }
+.cta-banner p{ color: rgba(255,255,255,.82); margin:0; max-width:46ch; }
+
+/* =========================================================
+   Footer v2 — ko'p ustunli
+   ========================================================= */
+.footer-v2{ background: var(--bg-2); border-top:1px solid var(--border-soft); padding: 52px 0 0; margin-top:70px; }
+.footer-v2-grid{ display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; padding-bottom:36px; }
+@media (max-width: 800px){ .footer-v2-grid{ grid-template-columns: 1fr 1fr; } }
+.footer-v2-grid h5{ font-size:13px; text-transform:uppercase; letter-spacing:.06em; color: var(--text-mute); margin-bottom:14px; font-family: var(--font-mono); }
+.footer-v2-links{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:9px; }
+.footer-v2-links a{ color: var(--text-dim); font-size:13.5px; }
+.footer-v2-links a:hover{ color: var(--primary); }
+.footer-v2-bottom{ border-top:1px solid var(--border-soft); padding:18px 0; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12.5px; color: var(--text-mute); }
+
+/* =========================================================
+   Floating AI assistant widget
+   ========================================================= */
+.fab-wrap{ position: fixed; right: 22px; bottom: 22px; z-index: 60; display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+.fab-hint{
+  background: var(--surface-2); border:1px solid var(--border); color: var(--text); font-size:12.5px; font-weight:600;
+  padding:8px 14px; border-radius: var(--radius-pill); box-shadow: var(--shadow-2);
+}
+.fab-btn{
+  width:56px; height:56px; border-radius:50%; background: var(--primary); color: var(--primary-ink);
+  display:flex; align-items:center; justify-content:center; font-size:24px; border:none; cursor:pointer;
+  box-shadow: var(--shadow-glow);
+}
+.fab-panel{
+  width: 300px; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-l);
+  box-shadow: var(--shadow-2); padding:16px; display:none;
+}
+.fab-panel.open{ display:block; }
+.fab-panel-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.fab-action{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius: var(--radius-s);
+  border:1px solid var(--border-soft); margin-bottom:8px; cursor:pointer; font-size:13.5px; color:var(--text);
+}
+.fab-action:hover{ background: var(--surface-2); }
+
+/* =========================================================
+   Vakansiyalar sahifasi — chap panel filtrlari
+   ========================================================= */
+.vac-layout{ display:grid; grid-template-columns: 270px 1fr; gap:24px; align-items:flex-start; }
+@media (max-width: 860px){ .vac-layout{ grid-template-columns: 1fr; } }
+.filter-panel{ position: sticky; top: 84px; }
+.filter-group{ margin-bottom:18px; }
+.filter-group label.filter-label{ font-size:12.5px; font-weight:700; color: var(--text-dim); display:block; margin-bottom:8px; text-transform:uppercase; letter-spacing:.03em; }
+.filter-check-row{ display:flex; align-items:center; gap:8px; font-size:13.5px; color: var(--text-dim); margin-bottom:6px; }
+.filter-check-row input{ width:auto; }
+.toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; background: var(--surface-2); border:1px solid var(--border-soft); border-radius: var(--radius-s); padding:10px 12px; }
+.toggle-switch{ position:relative; width:38px; height:22px; flex:none; }
+.toggle-switch input{ opacity:0; width:0; height:0; }
+.toggle-slider{ position:absolute; inset:0; background: var(--border); border-radius: var(--radius-pill); cursor:pointer; transition:.15s; }
+.toggle-slider::before{ content:''; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.15s; }
+.toggle-switch input:checked + .toggle-slider{ background: var(--primary); }
+.toggle-switch input:checked + .toggle-slider::before{ transform: translateX(16px); }
+.pill-tabs{ display:inline-flex; background: var(--surface-2); border:1px solid var(--border-soft); border-radius: var(--radius-pill); padding:4px; gap:4px; }
+.pill-tab{ border:none; background:none; padding:8px 16px; border-radius: var(--radius-pill); font-size:13px; font-weight:700; color: var(--text-mute); cursor:pointer; }
+.pill-tab.active{ background: var(--primary); color: var(--primary-ink); }
+
+/* =========================================================
+   Login — foydalanuvchi turini tanlash kartalari
+   ========================================================= */
+.role-picker-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:18px; max-width:640px; margin: 0 auto; }
+@media (max-width:640px){ .role-picker-grid{ grid-template-columns:1fr; } }
+.role-picker-card{
+  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-l); padding:26px;
+  cursor:pointer; transition: transform .15s ease, border-color .15s ease; text-align:left; position:relative;
+}
+.role-picker-card:hover{ transform: translateY(-3px); border-color: var(--primary-dim); }
+.role-picker-icon{ width:48px;height:48px;border-radius:12px;background:rgba(47,174,122,.14);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px; }
+.role-picker-arrow{ position:absolute; top:22px; right:22px; color: var(--text-mute); font-size:18px; }
