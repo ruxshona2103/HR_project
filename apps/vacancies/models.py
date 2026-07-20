@@ -82,14 +82,11 @@ class Vacancy(models.Model):
         ("FIELD", "Joylarga chiqish shaklida"),
     ]
 
-    title = models.CharField(max_length=255,null=True,
-        blank=True)
-    description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar",null=True,
-        blank=True)
-    company = models.ForeignKey(
-        'profile.CompanyProfile',  # 'app_name.ModelName
-        on_delete=models.CASCADE,
-        related_name='vacancies'
+    title = models.CharField(max_length=255)
+    description = models.TextField(help_text="Vakansiya tavsifi, vazifalar va talablar")
+
+    photo = models.ImageField(
+        upload_to="vacancies/photos/", null=True, blank=True
     )
     # Asosiy ma'lumotlar
     industry = models.CharField(
@@ -115,7 +112,6 @@ class Vacancy(models.Model):
     blank = True
     )
 
-    # Maosh va talablar
     salary_level = models.CharField(
         max_length=255,
         null=True,
@@ -161,7 +157,6 @@ class Vacancy(models.Model):
         blank=True
     )
 
-    # Hudud va ish turi
     region = models.CharField(
         max_length=255,
         help_text="Viloyat",
@@ -192,6 +187,8 @@ class Vacancy(models.Model):
         default='8'
     )
     company_address = models.TextField(
+        null=True,
+        blank=True,
         help_text="Korxona manzili (matn ko'rinishida)",
         null=True,
         blank=True
@@ -209,18 +206,15 @@ class Vacancy(models.Model):
         blank=True,
     )
 
-    # Muddat va izoh
-    publish_start = models.DateField(null=True, blank=True)
-    publish_end = models.DateField(null=True, blank=True)
+    publish_start = models.DateField()
+    publish_end = models.DateField()
     ai_improved_description = models.TextField(
         null=True,
         blank=True,
         help_text="AI tomonidan takomillashtirilgan tavsif (ixtiyoriy)",
     )
 
-    # Mavjud maydonlarni moslik uchun qoldiramiz
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="system",null=True,
-        blank=True)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="system")
     min_experience = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
