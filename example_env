@@ -1,14 +1,29 @@
-SECRET_KEY=your seckret key
-DEBUG=True
-TELEGRAM_BOT_TOKEN=mmmmmmmmmmmmmmmmmmm
-BOT_USERNAME=***********
-EMAIL=******************
+                                  Default env.example
 
-EMAIL_HOST_USER=******************
-EMAIL_HOST_PASSWORD=***************
-DEFAULT_FROM_EMAIL=*********************
+SECRET_KEY=your secret key
+DEBUG=False
+ALLOWED_HOSTS=https://example.com
 
+TELEGRAM_BOT_TOKEN=your tg bot token
+BOT_USERNAME=your bot username
+TELEGRAM_BOT_TOKEN2=your tg bot token
+BOT_USERNAME2=your bot username
 
-TELEGRAM_BOT_TOKEN_2=*******************************************************
-BOT_USERNAME_2=****************
-PLATFORM_URL=*****************
+GEMINI_KEY=your api key
+
+EMAIL_HOST_USER=your email
+EMAIL_HOST_PASSWORD=your email password
+DEFAULT_FROM_EMAIL=your email
+
+PLATFORM_URL=http://127.0.0.1:8000
+
+USE_POSTGRES=True
+DB_NAME=db name
+USER=db user
+PASSWORD=db passsword
+HOST=db host
+PORT=db port
+
+REDIS_HOST=redis host
+REDIS_PORT=redis port
+CORS_ALLOWED_ORIGINS= cors

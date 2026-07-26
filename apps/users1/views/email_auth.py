@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
+from apps.users1.throttling import OTPRequestThrottle
 
 from apps.users1.serializers import (
     EmailLoginSerializer,
@@ -45,6 +46,7 @@ class EmailLoginView(APIView):
 class EmailCandidateRegisterView(APIView):
     """Email orqali nomzod ro'yxatdan o'tish — 1-qadam"""
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Email orqali nomzod ro'yxatdan o'tish",
@@ -84,6 +86,7 @@ class EmailCandidateRegisterView(APIView):
 class EmailOrganizationRegisterView(APIView):
     """Email orqali tashkilot ro'yxatdan o'tish — 1-qadam"""
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Email orqali tashkilot ro'yxatdan o'tish",
@@ -124,6 +127,7 @@ class EmailOrganizationRegisterView(APIView):
 class VerifyEmailView(APIView):
     """Email kodni tasdiqlash va User yaratish — 2-qadam"""
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Email kodni tasdiqlash",
@@ -166,6 +170,7 @@ class VerifyEmailView(APIView):
 class ResendEmailCodeView(APIView):
     """Email tasdiqlash kodini qayta yuborish"""
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Email kodini qayta yuborish",
