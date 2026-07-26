@@ -14,13 +14,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 from decouple import config
+
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
 DJANGO_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -38,6 +39,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "channels",
     "apps.users1",
     'apps.user_profile',
     'apps.vacancies',
@@ -48,13 +50,10 @@ LOCAL_APPS = [
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-#GEMINI API KEY
-GEMINI_API_KEY = os.getenv("GEMINI_KEY")
-
+GEMINI_KEY = os.getenv("GEMINI_KEY", "")
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -84,8 +83,8 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 if config("USE_POSTGRES", default=False, cast=bool):
     DATABASES = {
@@ -105,7 +104,6 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -156,6 +154,13 @@ REST_FRAMEWORK = {
     },
 }
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [(os.getenv("REDIS_HOST", "127.0.0.1"), int(os.getenv("REDIS_PORT", 6379)))]},
+    }
+}
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'API HR',
     'DESCRIPTION': 'HR PROJECT API hujjatlari',
@@ -176,27 +181,74 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-# SIMPLE_JWT = {
-#     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-#     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-#     "ROTATE_REFRESH_TOKENS": True,
-#     "BLACKLIST_AFTER_ROTATION": True,
-#     "UPDATE_LAST_LOGIN": True,
-#     "ALGORITHM": "HS256",
-#     "AUTH_HEADER_TYPES": ("Bearer",),
-#     "USER_ID_FIELD": "id",
-#     "USER_ID_CLAIM": "user_id",
-# }
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    try:
+        os.makedirs(LOGS_DIR)
+    except PermissionError:
+        pass
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
 }
 
+if not DEBUG:
+    LOGGING['handlers']['file'] = {
+        'level': 'ERROR',
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': os.path.join(LOGS_DIR, 'errors.log'),
+        'maxBytes': 1024 * 1024 * 5,  # 5 MB
+        'backupCount': 5,
+        'formatter': 'verbose',
+    }
+    LOGGING['loggers']['django.request'] = {
+        'handlers': ['file'],
+        'level': 'ERROR',
+        'propagate': False,
+    }
 
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    raw_cors = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip()
+        for origin in raw_cors.replace("[", "").replace("]", "").replace("'", "").replace('"', "").split(",")
+        if origin.strip()
+    ]
 
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -206,48 +258,24 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# AUTHENTICATION_BACKENDS = [
-#     'apps.users.backends.EmailOrPhoneBackend',
-#     'django.contrib.auth.backends.ModelBackend',
-# ]
-
 AUTHENTICATION_BACKENDS = [
     'apps.users1.backends.EmailBackend',
 ]
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-
-TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
 TESTING = False
 
-# ==================== EMAIL SETTINGS ====================
-#Production rejim (haqiqiy email yuborish)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
-
-
-# Console rejim (test uchun):
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# DEFAULT_FROM_EMAIL = 'HR Project <noreply@hrproject.uz>'
-###------ochirish mumkin pastdagini!!!
-# ==================== EMAIL SETTINGS ====================
-# Console rejim (test uchun - terminalda ko'rsatadi)
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# DEFAULT_FROM_EMAIL = 'HR Project <noreply@hrproject.uz>'
-
-# ==================== EMAIL SETTINGS ====================
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # ← Comment!
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -257,4 +285,12 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
 
+import sys
 
+if 'test' in sys.argv:
+    REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
+    REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
+        'anon': None,
+        'user': None,
+        'otp_request': '1000/min',
+    }
