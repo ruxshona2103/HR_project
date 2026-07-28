@@ -2,11 +2,10 @@
 Django settings for config project.
 Production Ready & Clean Code Structure.
 """
-
+import sys
 from datetime import timedelta
 from pathlib import Path
 import os
-import sys
 from dotenv import load_dotenv
 from decouple import config
 
@@ -277,43 +276,12 @@ if not DEBUG:
 TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
-TESTING = False
-
-# ==================== EMAIL SETTINGS ====================
-#Production rejim (haqiqiy email yuborish)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='HR Project <noreply@hrproject.uz>')
-
-
-# Console rejim (test uchun):
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# DEFAULT_FROM_EMAIL = 'HR Project <noreply@hrproject.uz>'
-###------ochirish mumkin pastdagini!!!
-# ==================== EMAIL SETTINGS ====================
-# Console rejim (test uchun - terminalda ko'rsatadi)
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# DEFAULT_FROM_EMAIL = 'HR Project <noreply@hrproject.uz>'
-
-# ==================== EMAIL SETTINGS ====================
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # ← Comment!
-from decouple import config
 
 GEMINI_KEY = os.getenv("GEMINI_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-BOT_USERNAME = os.getenv("BOT_USERNAME")
-
-TESTING = False
-
-# ==================== EMAIL SETTINGS ====================
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
 EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = True
@@ -327,3 +295,13 @@ DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
     default='noreply@aceltai.uz'
 )
+
+
+TESTING = "test" in sys.argv
+if TESTING:
+    REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
+    REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
+        "anon": None,
+        "user": None,
+        "otp_request": '1000/min',
+    }
