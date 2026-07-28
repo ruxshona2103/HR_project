@@ -282,6 +282,8 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="HR Project <noreply@hrproject.uz>")
 
 GEMINI_KEY = os.getenv("GEMINI_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
