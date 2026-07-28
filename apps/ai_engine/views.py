@@ -1,50 +1,23 @@
-from django.http import JsonResponse
-from .models import InterviewResult
+import json
+from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .services.resume_service import ResumeService
+from .models import InterviewResult
+from .services.interview_service import ResumeService
 from apps.vacancies.models import Vacancy
 
 
-def get_interview_status(request, vacancy_id):
-    """Nomzod suhbatdan o'tganmi yoki yo'qligini tekshirish"""
-    result = InterviewResult.objects.filter(user=request.user, vacancy_name=vacancy_id).first()
-    if result:
-        return JsonResponse({'status': 'completed', 'score': result.score})
-    return JsonResponse({'status': 'not_started'})
-
-def get_ai_feedback(request, result_id):
-    """HR yoki Nomzod uchun AI xulosasini ko'rsatish"""
-    result = InterviewResult.objects.get(id=result_id)
-    return JsonResponse({
-        'feedback': result.feedback,
-        'score': result.score,
-        'chat_history': result.chat_log
-    })
-
-
-def check_resume_view(request):
-    if request.method == "POST":
-        resume_file = request.FILES.get('resume')
-        vacancy_desc = request.POST.get('vacancy_description')
-
-        # Rezyume tahlili xizmatini chaqiramiz
-        service = ResumeService()
-        analysis = service.analyze(resume_file, vacancy_desc)
-
-        return JsonResponse({
-            'match_score': analysis['score'],
-            'suggestions': analysis['tips']
-        })
-
+@extend_schema(tags=["AI Engine"])
 class ResumeCheckAPIView(APIView):
     """
-    Nomzod rezyumesini vakansiyaga mosligini tekshirish uchun API
+    Nomzod rezyumesini vakansiyaga mosligini tekshirish uchun API.
     """
+
     def post(self, request):
         vacancy_id = request.data.get('vacancy_id')
-        resume_text = request.data.get('resume_text') # Front-end PDF dan matnni olib beradi
+        resume_text = request.data.get('resume_text')
 
         if not vacancy_id or not resume_text:
             return Response(
@@ -54,25 +27,90 @@ class ResumeCheckAPIView(APIView):
 
         try:
             service = ResumeService()
-            # AI tahlilini olamiz
-            analysis_result = service.analyze_resume(resume_text, vacancy_id)
+            analysis_result_str = service.analyze_resume(resume_text, vacancy_id)
+
+            try:
+                analysis_result = json.loads(analysis_result_str)
+            except json.JSONDecodeError:
+                analysis_result = {"raw_response": analysis_result_str}
+
             return Response(analysis_result, status=status.HTTP_200_OK)
         except Vacancy.DoesNotExist:
             return Response({"error": "Vakansiya topilmadi"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            return Response(
+                {"error": "Rezyumeni tahlil qilishda ichki xatolik yuz berdi"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
+
+@extend_schema(tags=["AI Engine"])
 class InterviewStartAPIView(APIView):
     """
-    Intervyuni boshlash uchun (Websocket ulanishidan oldin ma'lumot olish)
+    Intervyuni boshlash uchun (WebSocket ulanishidan oldin ma'lumot olish).
     """
+
     def get(self, request, vacancy_id):
         try:
             vacancy = Vacancy.objects.get(id=vacancy_id)
             return Response({
                 "vacancy_title": vacancy.title,
                 "status": "ready_for_interview",
-                "ws_url": f"ws://your-domain/ws/interview/{vacancy_id}/"
+                "ws_url": f"ws://{request.get_host()}/ws/interview/{vacancy_id}/?token=<JWT_ACCESS_TOKEN>",
             })
         except Vacancy.DoesNotExist:
             return Response({"error": "Vakansiya topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@extend_schema(tags=["AI Engine"])
+class InterviewStatusAPIView(APIView):
+    """
+    Nomzod ma'lum bir vakansiya bo'yicha AI-intervyudan o'tganmi yoki
+    yo'qligini tekshiradi. Faqat autentifikatsiyadan o'tgan foydalanuvchi
+    o'zining natijasini ko'radi (JWT orqali — DRF standart autentifikatsiyasi).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, vacancy_id):
+        result = (
+            InterviewResult.objects
+            .filter(user=request.user, vacancy_name=str(vacancy_id))
+            .order_by('-created_at')
+            .first()
+        )
+
+        if result:
+            return Response({
+                "status": "completed",
+                "result_id": result.id,
+                "score": result.score,
+            })
+        return Response({"status": "not_started"})
+
+
+@extend_schema(tags=["AI Engine"])
+class InterviewFeedbackAPIView(APIView):
+    """
+    AI-intervyu natijasi va xulosasini ko'rsatadi.
+    Faqat natijaning egasi (shu intervyuni topshirgan foydalanuvchi)
+    uni ko'rishi mumkin — boshqa foydalanuvchining natijasi 403 bilan yopiladi.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, result_id):
+        try:
+            result = InterviewResult.objects.get(id=result_id)
+        except InterviewResult.DoesNotExist:
+            return Response({"error": "Natija topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+        if result.user_id != request.user.id:
+            return Response(
+                {"error": "Sizda bu natijani ko'rish huquqi yo'q"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return Response({
+            'feedback': result.feedback,
+            'score': result.score,
+            'chat_history': result.chat_log,
+        })

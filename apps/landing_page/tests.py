@@ -50,8 +50,7 @@ class LandingPageTest(APITestCase):
             is_active=True
         )
 
-
-        cls.main_url = reverse('landing_page:landing-data')
+        cls.main_url = reverse('landing_page:landing-all-data')
 
     def test_main_landing_data_structure(self):
         """

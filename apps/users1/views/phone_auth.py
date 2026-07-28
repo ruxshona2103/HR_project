@@ -12,6 +12,7 @@ from apps.users1.serializers import (
     OTPVerifySerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
+from apps.users1.throttling import OTPRequestThrottle
 
 
 
@@ -25,6 +26,7 @@ class PhoneCandidateRegisterView(APIView):
     Keyin /auth/phone/verify-otp/ ga kodni kiriting.
     """
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Telefon orqali nomzod ro'yxatdan o'tish",
@@ -77,6 +79,7 @@ class PhoneOrganizationRegisterView(APIView):
     Telefon orqali tashkilot ro'yxatdan o'tish — 1-qadam.
     """
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Telefon orqali tashkilot ro'yxatdan o'tish",
@@ -134,6 +137,7 @@ class PhoneLoginRequestView(APIView):
     Bot unga OTP kod yuboradi.
     """
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="Telefon orqali login — OTP so'rash",
@@ -192,6 +196,7 @@ class OTPVerifyView(APIView):
     - PendingRegistration bo'lsa → yangi User yaratiladi, JWT token qaytadi
     """
     permission_classes = [AllowAny]
+    throttle_classes = [OTPRequestThrottle]
 
     @extend_schema(
         summary="OTP kodni tasdiqlash (login + register)",

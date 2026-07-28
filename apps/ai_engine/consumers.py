@@ -1,49 +1,139 @@
 import json
+import logging
+
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .services.interview_service import AIInterviewEngine
+from channels.db import database_sync_to_async
+
+from apps.ai_engine.services.interview_service import AIInterviewEngine, AIEvaluator
+from apps.ai_engine.models import InterviewResult
+
+logger = logging.getLogger(__name__)
+
+INTERVIEW_END_MARKER = "SUHBAT YAKUNLANDI"
 
 
 class InterviewConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        # URL'dan vakansiya ID'sini olamiz (masalan: ws/interview/5/)
-        self.vacancy_id = self.scope['url_route']['kwargs']['vacancy_id']
 
-        # AI motorini ishga tushiramiz
-        # Eslatma: AIInterviewEngine sinxron bo'lsa, bu yerda async muammosi bo'lmasligi uchun
-        # mantiqni biroz soddalashtiramiz yoki sync_to_async dan foydalanamiz
-        self.interview_engine = AIInterviewEngine(self.vacancy_id)
+    async def connect(self):
+        self.vacancy_id = self.scope['url_route']['kwargs'].get('vacancy_id')
+
+        self.user = self.scope.get('user')
+        if not self.user or not self.user.is_authenticated:
+            await self.close(code=4001)  # Unauthorized access
+            return
+
+        self.room_group_name = f"interview_{self.vacancy_id}_{self.user.id}"
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
 
         await self.accept()
 
-        # Birinchi bo'lib AI nomzod bilan salomlashadi
-        initial_greeting = "Assalomu alaykum! Altron tizimiga xush kelibsiz. Suhbatni boshlashga tayyormisiz?"
-        await self.send(text_data=json.dumps({
-            'type': 'ai_message',
-            'message': initial_greeting
-        }))
+        try:
+            init_engine = database_sync_to_async(
+                lambda: AIInterviewEngine(vacancy_id=self.vacancy_id, user=self.user)
+            )
+            self.interview_engine = await init_engine()
+
+            initial_greeting = "Assalomu alaykum! Altron tizimiga xush kelibsiz. Suhbatni boshlashga tayyormisiz?"
+            await self.send(text_data=json.dumps({
+                'type': 'ai_message',
+                'message': initial_greeting
+            }))
+        except Exception as e:
+            logger.error(f"WebSocket ulanish xatoligi: {str(e)}")
+            await self.send(text_data=json.dumps({
+                'type': 'error_message',
+                'message': "Kechirasiz, tizimda ichki xatolik yuz berdi."
+            }))
+            await self.close(code=4002)
 
     async def disconnect(self, close_code):
-        # Aloqa uzilganda xotirani tozalash yoki natijani saqlash mumkin
-        pass
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     async def receive(self, text_data):
-        """Nomzoddan kelgan xabarni (matn yoki STT natijasi) qabul qilish"""
-        data = json.loads(text_data)
+        # 1) Xabarni JSON sifatida o'qishga urinamiz. Format xato bo'lsa,
+        #    butun ulanishni yopmasdan — faqat ogohlantirish yuborib,
+        #    suhbatni davom ettiramiz (foydalanuvchi progressi yo'qolmasin).
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({
+                'type': 'error_message',
+                'message': "Xabar formati noto'g'ri. Iltimos, qaytadan yuboring."
+            }))
+            return
+
         user_message = data.get('message')
+        if not user_message:
+            return
 
-        if user_message:
-            # Gemini'dan javob olish
-            ai_response = self.interview_engine.get_next_response(user_message)
+        try:
+            get_ai_response = database_sync_to_async(
+                self.interview_engine.get_next_response
+            )
+            ai_response = await get_ai_response(user_message)
 
-            # Javobni nomzodga yuborish
             await self.send(text_data=json.dumps({
                 'type': 'ai_message',
                 'message': ai_response
             }))
 
-            # Agar intervyu tugagan bo'lsa, ulanishni yopish haqida signal berish
-            if "SUHBAT YAKUNLANDI" in ai_response:
-                await self.send(text_data=json.dumps({
-                    'type': 'system_message',
-                    'message': 'Suhbat muvaffaqiyatli yakunlandi. Natijalar HR panelida paydo bo\'ladi.'
-                }))
+            if INTERVIEW_END_MARKER in ai_response:
+                await self._finish_interview()
+
+        except Exception as e:
+            logger.error(f"WebSocket xabar qayta ishlash xatoligi: {str(e)}")
+            await self.send(text_data=json.dumps({
+                'type': 'error_message',
+                'message': "Kechirasiz, tizimda ichki xatolik yuz berdi."
+            }))
+            await self.close(code=4002)
+
+    async def _finish_interview(self):
+        """
+        Suhbat yakunlangach: AIEvaluator orqali baholaydi va natijani
+        InterviewResult jadvaliga yozadi, so'ng ulanishni yopadi.
+
+        Baholash/saqlashda xato yuz bersa ham, foydalanuvchiga aniq xabar
+        beriladi va WebSocket toza yopiladi (server 500 bilan qulamaydi).
+        """
+        try:
+            history = self.interview_engine.get_history()
+
+            evaluate = database_sync_to_async(
+                lambda: AIEvaluator().evaluate_interview(
+                    vacancy_id=self.vacancy_id,
+                    chat_history=history,
+                )
+            )
+            result = await evaluate()
+
+            save_result = database_sync_to_async(
+                lambda: InterviewResult.objects.create(
+                    user=self.user,
+                    vacancy_name=str(self.vacancy_id),
+                    chat_log=history,
+                    score=result.get("score"),
+                    feedback=result.get("feedback"),
+                )
+            )
+            await save_result()
+
+            await self.send(text_data=json.dumps({
+                'type': 'system_message',
+                'message': "Suhbat muvaffaqiyatli yakunlandi. Natijalar HR panelida paydo bo'ladi."
+            }))
+        except Exception as e:
+            logger.error(f"Intervyuni yakunlash/saqlash xatoligi: {str(e)}")
+            await self.send(text_data=json.dumps({
+                'type': 'error_message',
+                'message': "Suhbat yakunlandi, lekin natijani saqlashda xatolik yuz berdi."
+            }))
+        finally:
+            await self.close(code=1000)
