@@ -2,11 +2,10 @@
 Django settings for config project.
 Production Ready & Clean Code Structure.
 """
-
+import sys
 from datetime import timedelta
 from pathlib import Path
 import os
-import sys
 from dotenv import load_dotenv
 from decouple import config
 
@@ -273,19 +272,30 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="HR Project <noreply@hrproject.uz>")
+
+TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN")
+BOT_USERNAME = os.getenv("BOT_USERNAME")
+
 
 GEMINI_KEY = os.getenv("GEMINI_KEY", "")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-BOT_USERNAME = os.getenv("BOT_USERNAME")
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+RESEND_API_KEY = config('RESEND_API_KEY', default='')
+
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='noreply@aceltai.uz'
+)
+
 
 TESTING = "test" in sys.argv
 if TESTING:
