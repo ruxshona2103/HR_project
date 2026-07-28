@@ -20,7 +20,7 @@ class EmailVerificationCode(models.Model):
     password = models.CharField(max_length=255)  # hashed parol
     user_type = models.CharField(max_length=20)
 
-    """Tashkilotniki"""
+    """Tashkilot uchun"""
     organization_name = models.CharField(max_length=255, blank=True, null=True)
     position = models.CharField(max_length=150, blank=True, null=True)
 
