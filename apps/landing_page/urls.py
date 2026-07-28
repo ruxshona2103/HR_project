@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import LandingPageDataView, ProductListView, PricingPlanListView, ContactInfoView
 
+app_name = 'landing_page'
+
 urlpatterns = [
     path('landing-data/', LandingPageDataView.as_view(), name='landing-all-data'),
 

@@ -87,7 +87,7 @@ class Vacancy(models.Model):
         on_delete=models.CASCADE,
         related_name="vacancies",
         null=True,
-        blank=True
+        blank=False
     )
 
     title = models.CharField(max_length=255)

@@ -33,8 +33,7 @@ class TelegramConnectView(APIView):
     Muhim: Foydalanuvchi login qilgan bo'lishi shart (JWT Bearer token).
     """
 
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Tokenni tekshirish (bot havolasidan o'tganda)",

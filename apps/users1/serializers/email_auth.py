@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import resend
 from apps.users1.models import User, EmailVerificationCode
-from django.db import transaction
+from django.db import transaction, IntegrityError
 import re
 import dns.resolver
 
@@ -41,7 +41,6 @@ def validate_real_email(email: str) -> str:
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
         raise serializers.ValidationError(f"'{domain}' domeni mavjud emas.")
     except Exception:
-        # Internetda xato bo'lishi
         pass
 
     return email.lower()
@@ -246,19 +245,24 @@ class VerifyEmailSerializer(serializers.Serializer):
     def save(self):
         verification = self.validated_data['verification']
 
-        with transaction.atomic():
-            user = User.objects.create(
-                email=verification.email,
-                first_name=verification.first_name,
-                last_name=verification.last_name,
-                middle_name=verification.middle_name,
-                password=verification.password,
-                user_type=verification.user_type,
-                organization_name=verification.organization_name,
-                position=verification.position,
+        try:
+            with transaction.atomic():
+                user = User.objects.create(
+                    email=verification.email,
+                    first_name=verification.first_name,
+                    last_name=verification.last_name,
+                    middle_name=verification.middle_name,
+                    password=verification.password,
+                    user_type=verification.user_type,
+                    organization_name=verification.organization_name,
+                    position=verification.position,
+                )
+                verification.is_used = True
+                verification.save()
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {"email": "Bu email manzil allaqachon ro'yxatdan o'tgan."}
             )
-            verification.is_used = True
-            verification.save()
 
         return user
 
