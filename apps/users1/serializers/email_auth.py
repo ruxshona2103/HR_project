@@ -5,10 +5,14 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
+import resend
 from apps.users1.models import User, EmailVerificationCode
 from django.db import transaction
 import re
 import dns.resolver
+
+
+
 
 DISPOSABLE_DOMAINS = {
     "mailinator.com", "guerrillamail.com", "10minutemail.com",
@@ -116,19 +120,31 @@ class EmailCandidateRegisterSerializer(serializers.Serializer):
             user_type='candidate',
         )
 
-        send_mail(
-            subject='HR Project — Email Tasdiqlash',
-            message=(
+        # send_mail(
+        #     subject='HR Project — Email Tasdiqlash',
+        #     message=(
+        #         f"Assalomu alaykum!\n\n"
+        #         f"Tasdiqlash kodi: {code}\n\n"
+        #         f"Kod 5 daqiqa amal qiladi.\n\n"
+        #         f"Hurmat bilan,\nHR Project jamoasi"
+        #     ),
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[email],
+        #     fail_silently=False,
+        # )
+        resend.api_key = settings.RESEND_API_KEY
+
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "HR Project — Email Tasdiqlash",
+            "text": (
                 f"Assalomu alaykum!\n\n"
                 f"Tasdiqlash kodi: {code}\n\n"
                 f"Kod 5 daqiqa amal qiladi.\n\n"
                 f"Hurmat bilan,\nHR Project jamoasi"
             ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
+        })
         return verification
 
 
@@ -173,19 +189,32 @@ class EmailOrganizationRegisterSerializer(serializers.Serializer):
             position=self.validated_data.get('position', ''),
         )
 
-        send_mail(
-            subject='HR Project — Email Tasdiqlash',
-            message=(
+
+        # send_mail(
+        #     subject='HR Project — Email Tasdiqlash',
+        #     message=(
+        #         f"Assalomu alaykum!\n\n"
+        #         f"Tasdiqlash kodi: {code}\n\n"
+        #         f"Kod 5 daqiqa amal qiladi.\n\n"
+        #         f"Hurmat bilan,\nHR Project jamoasi"
+        #     ),
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[email],
+        #     fail_silently=False,
+        # )
+        resend.api_key = settings.RESEND_API_KEY
+
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "HR Project — Email Tasdiqlash",
+            "text": (
                 f"Assalomu alaykum!\n\n"
                 f"Tasdiqlash kodi: {code}\n\n"
                 f"Kod 5 daqiqa amal qiladi.\n\n"
                 f"Hurmat bilan,\nHR Project jamoasi"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
+                ),
+            })
         return verification
 
 
@@ -272,17 +301,29 @@ class ResendEmailCodeSerializer(serializers.Serializer):
             position=last.position,
         )
 
-        send_mail(
-            subject='HR Project — Yangi Tasdiqlash Kodi',
-            message=(
+        # send_mail(
+        #     subject='HR Project — Yangi Tasdiqlash Kodi',
+        #     message=(
+        #         f"Assalomu alaykum!\n\n"
+        #         f"Yangi tasdiqlash kodi: {code}\n\n"
+        #         f"Kod 5 daqiqa amal qiladi.\n\n"
+        #         f"Hurmat bilan,\nHR Project jamoasi"
+        #     ),
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[email],
+        #     fail_silently=False,
+        # )
+        resend.api_key = settings.RESEND_API_KEY
+
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "HR Project — Email Tasdiqlash",
+            "text": (
                 f"Assalomu alaykum!\n\n"
-                f"Yangi tasdiqlash kodi: {code}\n\n"
+                f"Tasdiqlash kodi: {code}\n\n"
                 f"Kod 5 daqiqa amal qiladi.\n\n"
                 f"Hurmat bilan,\nHR Project jamoasi"
             ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
+        })
         return verification
