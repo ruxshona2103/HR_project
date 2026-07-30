@@ -529,39 +529,59 @@ export async function renderCandidateInterview(params) {
       }
 
       function connect() {
-        import("../config.js").then(({ getWsBase }) => {
-          const url = `${getWsBase()}/ws/interview/${vacancyId}/`;
-          ws = new WebSocket(url);
-          status.textContent = "Ulanmoqda...";
-          ws.addEventListener("open", () => {
-            dot.classList.add("on");
-            dot.classList.remove("off");
-            status.textContent = "Ulandi";
-            input.disabled = false;
-            submitBtn.disabled = false;
-            connectBtn.disabled = true;
-          });
-          ws.addEventListener("message", (ev) => {
-            try {
-              const data = JSON.parse(ev.data);
-              addBubble(data.message, data.type === "system_message" ? "system" : "ai");
-            } catch {
-              addBubble(ev.data, "ai");
-            }
-          });
-          ws.addEventListener("close", () => {
-            dot.classList.remove("on");
-            dot.classList.add("off");
-            status.textContent = "Ulanish uzildi";
-            input.disabled = true;
-            submitBtn.disabled = true;
-            connectBtn.disabled = false;
-          });
-          ws.addEventListener("error", () => {
-            toast("WebSocket ulanishida xatolik. Backendda Channels/ASGI ishga tushirilganini tekshiring.", "error");
-          });
-        });
+  import("../config.js").then(({ getWsBase }) => {
+    // AYNAN SIZNING LOCAL STORAGE'DAGI KALIT NOMINGIZ: "ishga_access"
+    const token = localStorage.getItem("ishga_access");
+
+    if (!token) {
+      if (typeof toast === "function") {
+        toast("Autentifikatsiya tokeni topilmadi. Qayta tizimga kiring!", "error");
+      } else {
+        alert("Autentifikatsiya tokeni topilmadi!");
       }
+      return;
+    }
+
+    // Endi URL ga ?token= parametrini qo'shamiz
+    const url = `${getWsBase()}/ws/interview/${vacancyId}/?token=${token}`;
+    ws = new WebSocket(url);
+    status.textContent = "Ulanmoqda...";
+
+    ws.addEventListener("open", () => {
+      dot.classList.add("on");
+      dot.classList.remove("off");
+      status.textContent = "Ulandi";
+      input.disabled = false;
+      submitBtn.disabled = false;
+      connectBtn.disabled = true;
+    });
+
+    ws.addEventListener("message", (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        const messageText = data.message || data.text || JSON.stringify(data);
+        addBubble(messageText, data.type === "system_message" ? "system" : "ai");
+      } catch {
+        addBubble(ev.data, "ai");
+      }
+    });
+
+    ws.addEventListener("close", () => {
+      dot.classList.remove("on");
+      dot.classList.add("off");
+      status.textContent = "Ulanish uzildi";
+      input.disabled = true;
+      submitBtn.disabled = true;
+      connectBtn.disabled = false;
+    });
+
+    ws.addEventListener("error", () => {
+      if (typeof toast === "function") {
+        toast("WebSocket ulanishida xatolik. Backendda Channels/ASGI ishga tushirilganini tekshiring.", "error");
+      }
+    });
+  });
+}
 
       connectBtn.addEventListener("click", connect);
 
@@ -569,6 +589,7 @@ export async function renderCandidateInterview(params) {
         e.preventDefault();
         const msg = input.value.trim();
         if (!msg || !ws || ws.readyState !== 1) return;
+
         addBubble(msg, "me");
         ws.send(JSON.stringify({ message: msg }));
         input.value = "";
