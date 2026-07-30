@@ -48,10 +48,12 @@ class EmailRegisterTest(TestCase):
         self.client = APIClient()
 
     @patch('apps.users1.serializers.email_auth.dns.resolver.resolve')
-    @patch('apps.users1.serializers.email_auth.send_mail')
-    def test_candidate_register_success(self, mock_mail, mock_dns):
+    @patch('resend.Emails.send')  # <-- Django send_mail o'rniga Resend'ni mock qilamiz!
+    def test_candidate_register_success(self, mock_resend, mock_dns):
         """Nomzod email orqali ro'yxatdan o'tish"""
         mock_dns.return_value = [True]
+        mock_resend.return_value = {"id": "fake_email_id"}  # <-- Resend javobini soxtalashtiramiz
+
         url = reverse('users1:email-candidate-register')
         response = self.client.post(url, {
             "email": "newuser@gmail.com",
@@ -62,13 +64,15 @@ class EmailRegisterTest(TestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(EmailVerificationCode.objects.filter(email="newuser@gmail.com").exists())
-        self.assertTrue(mock_mail.called)
+        self.assertTrue(mock_resend.called)
 
     @patch('apps.users1.serializers.email_auth.dns.resolver.resolve')
-    @patch('apps.users1.serializers.email_auth.send_mail')
-    def test_verify_email_success(self, mock_mail, mock_dns):
+    @patch('resend.Emails.send')  # <-- Bu yerga ham Resend'ni qo'shamiz
+    def test_verify_email_success(self, mock_resend, mock_dns):
         """Email kodni to'g'ri tasdiqlash — user yaratiladi"""
         mock_dns.return_value = [True]
+        mock_resend.return_value = {"id": "fake_email_id"}  # <-- Soxta javob
+
         # Avval register
         url_register = reverse('users1:email-candidate-register')
         self.client.post(url_register, {

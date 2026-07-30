@@ -3,7 +3,10 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.users1.models import User, OTPCode, PendingRegistration, OTPAttempt
-
+from django.conf import settings
+settings.PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+]
 
 class PhoneRegisterTest(TestCase):
     def setUp(self):
