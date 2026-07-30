@@ -2,14 +2,18 @@ import json
 import logging
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
 
 from apps.ai_engine.services.interview_service import AIInterviewEngine, AIEvaluator
 from apps.ai_engine.models import InterviewResult
+from apps.vacancies.models import Vacancy
 
 logger = logging.getLogger(__name__)
 
 INTERVIEW_END_MARKER = "SUHBAT YAKUNLANDI"
+
+# Xavfsizlik chegarasi: agar AI o'z vaqtida "SUHBAT YAKUNLANDI" demasa ham,
+# intervyu abadiy davom etib, token/xarajat portlab ketmasligi uchun.
+MAX_CANDIDATE_TURNS = 15
 
 
 class InterviewConsumer(AsyncWebsocketConsumer):
@@ -31,16 +35,24 @@ class InterviewConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
         try:
-            init_engine = database_sync_to_async(
-                lambda: AIInterviewEngine(vacancy_id=self.vacancy_id, user=self.user)
-            )
-            self.interview_engine = await init_engine()
+            # Django 5.2 tabiiy async ORM metodi — alohida sync_to_async
+            # wrapper shart emas, event loop bloklanmaydi.
+            vacancy = await Vacancy.objects.aget(id=self.vacancy_id)
 
-            initial_greeting = "Assalomu alaykum! Altron tizimiga xush kelibsiz. Suhbatni boshlashga tayyormisiz?"
+            self.interview_engine = AIInterviewEngine(vacancy=vacancy, user=self.user)
+            self.candidate_turns = 0
+
+            initial_greeting = "Assalomu alaykum! Aceltai tizimiga xush kelibsiz. Suhbatni boshlashga tayyormisiz?"
             await self.send(text_data=json.dumps({
                 'type': 'ai_message',
                 'message': initial_greeting
             }))
+        except Vacancy.DoesNotExist:
+            await self.send(text_data=json.dumps({
+                'type': 'error_message',
+                'message': "Vakansiya topilmadi."
+            }))
+            await self.close(code=4004)
         except Exception as e:
             logger.error(f"WebSocket ulanish xatoligi: {str(e)}")
             await self.send(text_data=json.dumps({
@@ -74,17 +86,17 @@ class InterviewConsumer(AsyncWebsocketConsumer):
             return
 
         try:
-            get_ai_response = database_sync_to_async(
-                self.interview_engine.get_next_response
-            )
-            ai_response = await get_ai_response(user_message)
+            # AsyncGroq orqali to'g'ridan-to'g'ri await — endi network
+            # chaqiruvi uchun database_sync_to_async ishlatilmaydi.
+            ai_response = await self.interview_engine.get_next_response(user_message)
+            self.candidate_turns += 1
 
             await self.send(text_data=json.dumps({
                 'type': 'ai_message',
                 'message': ai_response
             }))
 
-            if INTERVIEW_END_MARKER in ai_response:
+            if INTERVIEW_END_MARKER in ai_response or self.candidate_turns >= MAX_CANDIDATE_TURNS:
                 await self._finish_interview()
 
         except Exception as e:
@@ -106,24 +118,18 @@ class InterviewConsumer(AsyncWebsocketConsumer):
         try:
             history = self.interview_engine.get_history()
 
-            evaluate = database_sync_to_async(
-                lambda: AIEvaluator().evaluate_interview(
-                    vacancy_id=self.vacancy_id,
-                    chat_history=history,
-                )
+            result = await AIEvaluator().evaluate_interview(
+                vacancy=self.interview_engine.vacancy,
+                chat_history=history,
             )
-            result = await evaluate()
 
-            save_result = database_sync_to_async(
-                lambda: InterviewResult.objects.create(
-                    user=self.user,
-                    vacancy_name=str(self.vacancy_id),
-                    chat_log=history,
-                    score=result.get("score"),
-                    feedback=result.get("feedback"),
-                )
+            await InterviewResult.objects.acreate(
+                user=self.user,
+                vacancy_name=str(self.vacancy_id),
+                chat_log=history,
+                score=result.get("score"),
+                feedback=result.get("feedback"),
             )
-            await save_result()
 
             await self.send(text_data=json.dumps({
                 'type': 'system_message',
