@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.core.cache import cache
 from rest_framework.test import APIClient
 from rest_framework import status
 from unittest.mock import patch
@@ -8,6 +9,7 @@ from apps.users1.models import User, EmailVerificationCode
 
 class EmailLoginTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = User.objects.create(email="test@gmail.com", user_type="candidate")
         self.user.set_password("StrongPass123!")
@@ -45,6 +47,7 @@ class EmailLoginTest(TestCase):
 
 class EmailRegisterTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
 
     @patch('apps.users1.serializers.email_auth.dns.resolver.resolve')
@@ -73,7 +76,6 @@ class EmailRegisterTest(TestCase):
         mock_dns.return_value = [True]
         mock_resend.return_value = {"id": "fake_email_id"}  # <-- Soxta javob
 
-        # Avval register
         url_register = reverse('users1:email-candidate-register')
         self.client.post(url_register, {
             "email": "verify@gmail.com",
@@ -83,10 +85,8 @@ class EmailRegisterTest(TestCase):
             "password_confirm": "StrongPass123!",
         })
 
-        # Kodni olish
         verification = EmailVerificationCode.objects.get(email="verify@gmail.com")
 
-        # Verify
         url_verify = reverse('users1:email-verify')
         response = self.client.post(url_verify, {
             "email": "verify@gmail.com",

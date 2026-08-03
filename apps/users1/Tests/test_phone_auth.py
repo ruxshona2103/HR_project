@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.core.cache import cache
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.users1.models import User, OTPCode, PendingRegistration, OTPAttempt
@@ -10,6 +11,7 @@ settings.PASSWORD_HASHERS = [
 
 class PhoneRegisterTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
 
     def test_candidate_register_success(self):
@@ -55,6 +57,7 @@ class PhoneRegisterTest(TestCase):
 
 class OTPVerifyTest(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.phone = "+998901234567"
 

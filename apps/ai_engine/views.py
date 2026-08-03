@@ -15,6 +15,8 @@ class ResumeCheckAPIView(APIView):
     Nomzod rezyumesini vakansiyaga mosligini tekshirish uchun API.
     """
 
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         vacancy_id = request.data.get('vacancy_id')
         resume_text = request.data.get('resume_text')
@@ -49,6 +51,8 @@ class InterviewStartAPIView(APIView):
     """
     Intervyuni boshlash uchun (WebSocket ulanishidan oldin ma'lumot olish).
     """
+
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, vacancy_id):
         try:

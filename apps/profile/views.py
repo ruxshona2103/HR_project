@@ -1,3 +1,4 @@
+from django.db import IntegrityError, transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -18,19 +19,20 @@ class CompanyProfileViewSet(viewsets.ModelViewSet):
     queryset = CompanyProfile.objects.all()
 
     def get_queryset(self):
-        # Faqat o'zining profilini ko'rsin
         return CompanyProfile.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # STANDART POST SO'ROVI UCHUN: user_id ni biriktiramiz
         if CompanyProfile.objects.filter(user=self.request.user).exists():
             raise ValidationError({"detail": "Sizda allaqachon profil mavjud."})
         serializer.save(user=self.request.user)
 
     @action(detail=False, methods=["get", "put", "patch"], url_path="me")
     def me(self, request):
-        # Bu qism to'g'ri, get_or_create user_id ni avtomatik qo'shadi
-        profile, _ = CompanyProfile.objects.get_or_create(user=request.user)
+        try:
+            with transaction.atomic():
+                profile, _ = CompanyProfile.objects.get_or_create(user=request.user)
+        except IntegrityError:
+            profile = CompanyProfile.objects.get(user=request.user)
         if request.method in ("PUT", "PATCH"):
             serializer = self.get_serializer(profile, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
@@ -46,11 +48,9 @@ class CompanyVacancyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Userning kompaniyasiga tegishli vakansiyalarni olish
         return Vacancy.objects.filter(company__user=self.request.user)
 
     def perform_create(self, serializer):
-        # Vakansiyani userning kompaniyasiga bog'laymiz
         try:
             company = self.request.user.company_profile
             serializer.save(company=company)
@@ -69,6 +69,7 @@ class AIInterviewQuestionViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = AIInterviewQuestionSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -83,6 +84,8 @@ class AIInterviewQuestionViewSet(viewsets.ModelViewSet):
         return AIInterviewQuestion.objects.filter(company=company)
 
     def perform_create(self, serializer):
-        company = self.request.user.company_profile
+        try:
+            company = self.request.user.company_profile
+        except CompanyProfile.DoesNotExist:
+            raise ValidationError({"detail": "Avval kompaniya profili yarating."})
         serializer.save(company=company)
-

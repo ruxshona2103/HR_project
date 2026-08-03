@@ -121,7 +121,7 @@ class Konikma(models.Model):
         verbose_name_plural = 'Ko\'nikmalar'
 
     def __str__(self):
-        return f"{self.nom} ({self.get_daraja_display()})"
+        return f"{self.nom} ({self.daraja})" if self.daraja else self.nom
 
 
 
@@ -147,7 +147,7 @@ class Til(models.Model):
         verbose_name_plural = 'Tillar'
 
     def __str__(self):
-        return f"{self.til_nomi} - {self.get_daraja_display()}"
+        return f"{self.til_nomi} - {self.daraja}" if self.daraja else self.til_nomi
 
 
 
@@ -245,7 +245,7 @@ class Talim(models.Model):
         ordering = ['-boshlanish_yili']
 
     def __str__(self):
-        return f"{self.muassasa_nomi} - {self.get_daraja_display()}"
+        return f"{self.muassasa_nomi} - {self.daraja}" if self.daraja else self.muassasa_nomi
 
 
 

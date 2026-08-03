@@ -17,13 +17,16 @@ from apps.users1.views import (
     LogoutView,
     DeleteAccountView,
     BotLinkView,
+
+    TelegramConnectView,
+    TelegramDisconnectView,
+    TelegramStatusView,
 )
 
 app_name = 'users1'
 
 urlpatterns = [
 
-    # PHONE AUTH
     path('auth/phone/register/candidate/',
          PhoneCandidateRegisterView.as_view(),
          name='phone-candidate-register'),
@@ -40,7 +43,6 @@ urlpatterns = [
          OTPVerifyView.as_view(),
          name='phone-verify-otp'),
 
-    # EMAIL AUTH
     path('auth/email/login/',
          EmailLoginView.as_view(),
          name='email-login'),
@@ -61,7 +63,6 @@ urlpatterns = [
          ResendEmailCodeView.as_view(),
          name='email-resend-code'),
 
-    # TOKEN
     path('auth/token/refresh/',
          TokenRefreshView.as_view(),
          name='token-refresh'),
@@ -70,7 +71,6 @@ urlpatterns = [
          LogoutView.as_view(),
          name='logout'),
 
-    # PROFILE
     path('me/',
          MeView.as_view(),
          name='me'),
@@ -83,8 +83,19 @@ urlpatterns = [
          DeleteAccountView.as_view(),
          name='delete-account'),
 
-    # OTHER
     path('auth/bot-link/',
          BotLinkView.as_view(),
          name='bot-link'),
+
+    path('telegram/connect/',
+         TelegramConnectView.as_view(),
+         name='telegram-connect'),
+
+    path('telegram/disconnect/',
+         TelegramDisconnectView.as_view(),
+         name='telegram-disconnect'),
+
+    path('telegram/status/',
+         TelegramStatusView.as_view(),
+         name='telegram-status'),
 ]
