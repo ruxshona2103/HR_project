@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
@@ -145,6 +145,7 @@ class DeleteAccountView(APIView):
 @extend_schema(tags=["Auth"])
 class BotLinkView(APIView):
     """Telegram bot linkini olish"""
+    permission_classes = [AllowAny]
 
     @extend_schema(
         summary="Telegram bot linki",

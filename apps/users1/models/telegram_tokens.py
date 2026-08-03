@@ -69,7 +69,7 @@ class TelegramLinkToken(models.Model):
 
         self.is_used = True
         self.chat_id = chat_id
-        self.save(update_fields=["is_used", "chat_id"])
+        self.save(update_fields=["is_used", "chat_id", "user"])
 
 
 class AIInterviewToken(models.Model):

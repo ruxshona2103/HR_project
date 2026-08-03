@@ -12,29 +12,17 @@ class AloqaSerializer(serializers.ModelSerializer):
         exclude = ['resume']
 
 class KonikmaSerializer(serializers.ModelSerializer):
-    daraja_nomi = serializers.CharField(
-        source='get_daraja_display',read_only=True
-    )
-
     class Meta:
         model =  Konikma
         exclude = ['resume']
 
 
 class TilSerializer(serializers.ModelSerializer):
-    daraja_nomi = serializers.CharField(
-        source='get_daraja_display',read_only=True
-
-    )
     class Meta:
         model = Til
         exclude = ['resume']
 
 class IshTajribasiSerializer(serializers.ModelSerializer):
-    ish_turi_nomi = serializers.CharField(
-        source='get_ish_turi_dispay',read_only=True
-    )
-
     class Meta:
         model = IshTajribasi
         exclude = ['resume']
@@ -48,10 +36,6 @@ class IshTajribasiSerializer(serializers.ModelSerializer):
         return data
 
 class TalimSerializer(serializers.ModelSerializer):
-    daraja_nomi = serializers.CharField(
-        source='get_daraja_display', read_only=True
-    )
-
     class Meta:
         model = Talim
         exclude = ['resume']
@@ -101,9 +85,6 @@ class YutuqSerializer(serializers.ModelSerializer):
 
 
 class ResumeSerializer(serializers.ModelSerializer):
-    mutaxassislik_nomi = serializers.CharField(
-        source='get_mutaxasislik_display', read_only=True
-    )
     aloqa = AloqaSerializer(read_only=True)
     konikmalar = KonikmaSerializer(many=True, read_only=True)
     tillar = TilSerializer(many=True, read_only=True)
@@ -124,7 +105,6 @@ class ResumeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'foydalanuvchi_ismi',
             'mutaxasislik',
-            'mutaxassislik_nomi',
             'lavozim', 'men_haqimda',
             'profil_rasm', 'yaratilgan', 'yangilangan',
             'aloqa', 'konikmalar', 'tillar', 'ish_tajribalari',
@@ -153,4 +133,3 @@ class RoyxatdanOtishSerializer(serializers.ModelSerializer):
         user.set_password(parol)
         user.save()
         return user
-
