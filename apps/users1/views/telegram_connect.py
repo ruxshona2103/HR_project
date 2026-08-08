@@ -4,16 +4,14 @@ apps/users1/views/telegram_connect.py
 Telegram bot bilan platformani bog'lash uchun API endpointlar.
 """
 
-import secrets
-from datetime import timedelta
-
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+import logging
+logger = logging.getLogger(__name__)
 
 @extend_schema(tags=["Telegram Bot"])
 class TelegramConnectView(APIView):
@@ -61,10 +59,13 @@ class TelegramConnectView(APIView):
         try:
             from apps.users1.models import TelegramLinkToken
             token_obj = TelegramLinkToken.objects.filter(token=token_str).first()
-        except Exception:
-            # Agar TelegramLinkToken modeli hali migrate qilinmagan bo'lsa
-            # oddiy chat_id tekshiruvi bilan ishlashni davom ettirish
+        except Exception as e:
             token_obj = None
+            logger.error(f"Telegram akkauntni bog'lashda kutilmagan xatolik: {e}")
+            return Response(
+                {"error": "Telegramni bog'lash jarayonida xatolik yuz berdi. Qaytadan urinib ko'ring."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         if not token_obj:
             # Token modeli yo'q holda ham ishlashi uchun: chat_id ni bevosita bog'laymiz
@@ -127,15 +128,19 @@ class TelegramConnectView(APIView):
             from apps.users1.models import TelegramLinkToken
             token_obj = TelegramLinkToken.objects.filter(token=token_str, is_used=False).first()
             if token_obj and token_obj.is_valid():
-                token_obj.user = request.user
-                token_obj.consume(chat_id)
-            # Token topilmasa ham chat_id ni yozib qo'yamiz
-        except Exception:
-            pass
+                return Response({"error": "Token yaroqsiz yoki muddati tugagan."}, status=400)
 
-        # Har holda chat_id ni saqlash
-        request.user.chat_id = chat_id
-        request.user.save(update_fields=["chat_id"])
+            token_obj.user = request.user
+            token_obj.consume(chat_id)
+            request.user.chat_id = chat_id
+            request.user.save(update_fields=["chat_id"])
+
+        except Exception as e:
+            logger.error(f"Telegram akkauntni bog'lashda kutilmagan xatolik: {e}")
+            return Response(
+                {"error": "Telegramni bog'lash jarayonida xatolik yuz berdi. Qaytadan urinib ko'ring."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         return Response({
             "status": "success",
