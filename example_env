@@ -9,10 +9,12 @@ BOT_USERNAME=your bot username
 TELEGRAM_BOT_TOKEN2=your tg bot token
 BOT_USERNAME2=your bot username
 
-GEMINI_KEY=your api key
+GROQ_API_KEY=your api key
 
 EMAIL_HOST_USER=your email
 EMAIL_HOST_PASSWORD=your email password
+RESEND_API_KEY=your_key
+
 DEFAULT_FROM_EMAIL=your email
 
 PLATFORM_URL=http://127.0.0.1:8000

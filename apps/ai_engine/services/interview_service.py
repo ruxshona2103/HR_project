@@ -161,7 +161,6 @@ class ResumeService(BaseAIService):
                 response_format={"type": "json_object"},
                 temperature=0.3,
             )
-            # return completion.choices[0].message.content
             raw_text = (completion.choices[0].message.content or "").strip()
 
             if raw_text.startswith("```"):
