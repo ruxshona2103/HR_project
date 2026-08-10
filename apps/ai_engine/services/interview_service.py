@@ -11,11 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Suhbat juda uzayib ketmasligi (token/xarajat portlashi) uchun himoya chegarasi.
-# Interviewer prompt 5-7 ta savol so'rashni so'raydi, lekin AI har doim ham
-# o'z vaqtida "SUHBAT YAKUNLANDI" demasligi mumkin — shu bois qo'shimcha
-# xavfsizlik chegarasi sifatida saqlanadigan oxirgi xabarlar soni cheklanadi.
-MAX_HISTORY_MESSAGES = 24  # ~12 savol-javob juftligi (system prompt bundan tashqari)
+MAX_HISTORY_MESSAGES = 24
 
 
 class BaseAIService:
