@@ -6,7 +6,9 @@ media/
 static/collected/
 # C extensions
 *.so
+DEPLOY.md
 # Distribution / packaging
+docker-compose.override.yml
 .Python
 build/
 logs/
