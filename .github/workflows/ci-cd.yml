@@ -1,0 +1,211 @@
+name: CI/CD — Test, Build va Deploy
+
+# main branch'ga push bo'lganda: test -> build -> deploy (to'liq zanjir)
+# Pull Request ochilganda: faqat test (deploy qilinmaydi — xavfsizlik uchun)
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# GHCR (GitHub Container Registry)ga image push qilish uchun kerak
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+jobs:
+
+  # 1) TEST — har bir push/PR uchun majburiy
+  test:
+    name: Testlar (PostgreSQL + Redis)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: hr_test_db
+          POSTGRES_USER: hr_test_user
+          POSTGRES_PASSWORD: hr_test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SECRET_KEY: ci-test-secret-key-not-for-production-use-1234567890
+      DEBUG: "True"
+      ALLOWED_HOSTS: "127.0.0.1,localhost"
+      USE_POSTGRES: "True"
+      DB_NAME: hr_test_db
+      DB_USER: hr_test_user
+      DB_PASSWORD: hr_test_pass
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      # AI/Telegram/Email — testlarda mock qilingani uchun haqiqiy kalitlar shart emas
+      GROQ_API_KEY: ci-dummy-key
+      RESEND_API_KEY: ci-dummy-key
+      TELEGRAM_BOT_TOKEN: ci-dummy-token
+      BOT_USERNAME: ci_dummy_bot
+      TELEGRAM_BOT_TOKEN2: ci-dummy-token-2
+      BOT_USERNAME2: ci_dummy_bot_2
+      DEFAULT_FROM_EMAIL: ci@example.com
+      PLATFORM_URL: http://127.0.0.1:8000
+      CORS_ALLOWED_ORIGINS: http://127.0.0.1:3000
+
+    steps:
+      - name: Kodni olish
+        uses: actions/checkout@v4
+
+      - name: Python 3.12 o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Bog'liqliklarni o'rnatish
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install psycopg2-binary==2.9.12 coverage
+
+      - name: Migratsiyalar sinxronligini tekshirish
+        run: |
+          python manage.py makemigrations --check --dry-run
+        # Bu qadam: agar kimdir models.py o'zgartirib, migratsiya yaratishni
+        # unutgan bo'lsa — shu yerda darhol ushlanadi (loyihada avval aynan
+        # shu turdagi xato bo'lgan: Vacancy.company maydoni misolida).
+
+      - name: Django konfiguratsiyasini tekshirish
+        run: python manage.py check
+
+      - name: Testlarni ishga tushirish (coverage bilan)
+        run: |
+          coverage run --source='apps' manage.py test
+          coverage report -m
+          coverage xml
+
+      - name: Coverage hisobotini saqlash
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14
+
+      - name: Muvaffaqiyatsizlik haqida Telegram'ga xabar (ixtiyoriy)
+        if: failure() && vars.NOTIFY_ON_FAILURE == 'true'
+        env:
+          TG_TOKEN: ${{ secrets.CI_NOTIFY_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.CI_NOTIFY_CHAT_ID }}
+        run: |
+          if [ -n "$TG_TOKEN" ] && [ -n "$TG_CHAT_ID" ]; then
+            curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+              -d chat_id="${TG_CHAT_ID}" \
+              -d text="🔴 CI FAIL: ${{ github.repository }} — ${{ github.sha }} testlardan o'tmadi. Batafsil: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+
+  # 2) BUILD & PUSH — faqat testlar o'tgach, faqat main'ga push bo'lsa
+  build-and-push:
+    name: Docker image qurish va GHCR'ga yuborish
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodni olish
+        uses: actions/checkout@v4
+
+      - name: Docker Buildx sozlash
+        uses: docker/setup-buildx-action@v3
+
+      - name: GHCR'ga kirish
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata (tag'lar)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Build va push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 3) DEPLOY — faqat image tayyor bo'lgach, SSH orqali serverga
+  deploy:
+    name: Serverga deploy qilish
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Server sozlanganligini tekshirish
+        id: check
+        run: |
+          if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+            echo "⚠️  SERVER_HOST hali sozlanmagan — deploy o'tkazib yuboriladi (bu normal, server tayyor bo'lguncha)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: SSH orqali serverda deploy qilish
+        if: steps.check.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ secrets.SERVER_PROJECT_PATH }}
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose pull web bot_auth bot_vacancy
+            docker compose up -d --remove-orphans
+            docker compose exec -T web python manage.py migrate --noinput
+            docker image prune -f
+            echo "✅ Deploy muvaffaqiyatli yakunlandi: ${{ github.sha }}"
+
+      - name: Muvaffaqiyat haqida Telegram'ga xabar (ixtiyoriy)
+        if: steps.check.outputs.configured == 'true' && success() && vars.NOTIFY_ON_FAILURE == 'true'
+        env:
+          TG_TOKEN: ${{ secrets.CI_NOTIFY_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.CI_NOTIFY_CHAT_ID }}
+        run: |
+          if [ -n "$TG_TOKEN" ] && [ -n "$TG_CHAT_ID" ]; then
+            curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+              -d chat_id="${TG_CHAT_ID}" \
+              -d text="🟢 Deploy OK: ${{ github.repository }} — ${{ github.sha }} serverga muvaffaqiyatli o'rnatildi."
+          fi
