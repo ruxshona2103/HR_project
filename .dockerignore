@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.venv/
+
+# Ma'lumotlar bazasi va maxfiy fayllar — image ichiga KIRMASLIGI SHART
+db.sqlite3
+.env
+
+# Loglar va generatsiya qilinadigan fayllar (volume orqali boshqariladi)
+logs/
+staticfiles/
+media/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Docker'ning o'zi
+Dockerfile
+docker-compose.yml
+.dockerignore
