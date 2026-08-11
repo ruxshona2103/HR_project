@@ -118,65 +118,26 @@ class TelegramConnectView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # from apps.users1.models import User
-        #
-        # # Boshqa foydalanuvchida shu chat_id bo'lsa — tozalash
-        # User.objects.filter(chat_id=chat_id).exclude(id=request.user.id).update(chat_id=None)
-        #
-        # # Token orqali tekshirish
-        # try:
-        #     from apps.users1.models import TelegramLinkToken
-        #     token_obj = TelegramLinkToken.objects.filter(token=token_str, is_used=False).first()
-        #     if token_obj and not token_obj.is_valid():
-        #         return Response({"error": "Token yaroqsiz yoki muddati tugagan."}, status=400)
-        #
-        #     if token_obj:
-        #         token_obj.user = request.user
-        #         token_obj.consume(chat_id)
-        #
-        #     request.user.chat_id = chat_id
-        #     request.user.save(update_fields=["chat_id"])
-        #
-        # except Exception as e:
-        #     logger.error(f"Telegram akkauntni bog'lashda kutilmagan xatolik: {e}")
-        #     return Response(
-        #         {"error": "Telegramni bog'lash jarayonida xatolik yuz berdi. Qaytadan urinib ko'ring."},
-        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        #     )
-        #
-        # return Response({
-        #     "status": "success",
-        #     "message": "Telegram akkauntingiz muvaffaqiyatli bog'landi! "
-        #                "Endi botga qaytib «Bog'landim» tugmasini bosing.",
-        #     "chat_id": chat_id,
-        # })
         from apps.users1.models import User, TelegramLinkToken
         from django.db import transaction
 
         try:
             with transaction.atomic():
-                # 1. Boshqa foydalanuvchida ushbu chat_id bo'lsa — undan tozalaymiz
                 User.objects.filter(chat_id=chat_id).exclude(id=request.user.id).update(chat_id=None)
 
-                # 2. Tokenni bazadan izlaymiz (is_used=False filtrisiz, to'liq token orqali)
                 token_obj = TelegramLinkToken.objects.filter(token=token_str).first()
 
                 if token_obj:
-                    # Token topildi. Uning yaroqliligini va ishlatilmaganini tekshiramiz:
-                    # Agar token allaqachon ishlatilgan bo'lsa yoki muddati o'tgan bo'lsa -> 400
                     if token_obj.is_used or (hasattr(token_obj, 'is_valid') and not token_obj.is_valid()):
                         return Response(
                             {"error": "Token yaroqsiz yoki muddati tugagan."},
                             status=status.HTTP_400_BAD_REQUEST
                         )
 
-                    # Token yaroqli! Uni joriy userga biriktiramiz va consume qilamiz
                     token_obj.user = request.user
                     token_obj.is_used = True
                     token_obj.save(update_fields=["user", "is_used"])
 
-                # 3. Token DBda bo'lishi yoki bo'lmasligidan qat'i nazar:
-                # chat_id har doim joriy foydalanuvchiga biriktirilishi shart!
                 request.user.chat_id = chat_id
                 request.user.save(update_fields=["chat_id"])
 
@@ -192,6 +153,7 @@ class TelegramConnectView(APIView):
             "message": "Telegram akkauntingiz muvaffaqiyatli bog'landi!",
             "chat_id": chat_id,
         })
+
 
 @extend_schema(tags=["Telegram Bot"])
 class TelegramDisconnectView(APIView):
