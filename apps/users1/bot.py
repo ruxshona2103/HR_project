@@ -1,14 +1,20 @@
 import os
-import random
+import sys
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(BASE_DIR))
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
 import django
+django.setup()
+
+import random
 from django.utils import timezone
 from dotenv import load_dotenv
-
 load_dotenv()
 
-"""Django sozlamalarini yuklash — bot alohida ishlaydi shuning uchun"""
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
 
 from asgiref.sync import sync_to_async
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, \

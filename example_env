@@ -3,26 +3,30 @@
 SECRET_KEY=your secret key
 DEBUG=False
 ALLOWED_HOSTS=https://example.com
+ENABLE_SSL_REDIRECT=False or false
 
 TELEGRAM_BOT_TOKEN=your tg bot token
 BOT_USERNAME=your bot username
 TELEGRAM_BOT_TOKEN2=your tg bot token
 BOT_USERNAME2=your bot username
 
-GEMINI_KEY=your api key
+GROQ_API_KEY=your api key
 
 EMAIL_HOST_USER=your email
 EMAIL_HOST_PASSWORD=your email password
+RESEND_API_KEY=your_key
+EMAIL_PORT=587
+
 DEFAULT_FROM_EMAIL=your email
 
 PLATFORM_URL=http://127.0.0.1:8000
 
 USE_POSTGRES=True
-DB_NAME=db name
-USER=db user
-PASSWORD=db passsword
-HOST=db host
-PORT=db port
+DB_NAME=name
+DB_USER=user
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
 
 REDIS_HOST=redis host
 REDIS_PORT=redis port

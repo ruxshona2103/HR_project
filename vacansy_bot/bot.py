@@ -11,10 +11,11 @@ Arxitektura:
   - HR vakansiya yaratish to'g'ridan-to'g'ri botdan
 """
 
+import sys
 import os
 import secrets
 import django
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 

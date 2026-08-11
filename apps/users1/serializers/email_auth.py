@@ -3,13 +3,15 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.mail import send_mail
-from django.conf import settings
-import resend
+from apps.users1.utils import send_verification_email
 from apps.users1.models import User, EmailVerificationCode
 from django.db import transaction, IntegrityError
 import re
 import dns.resolver
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -119,70 +121,14 @@ class EmailCandidateRegisterSerializer(serializers.Serializer):
             user_type='candidate',
         )
 
-        # send_mail(
-        #     subject='HR Project — Email Tasdiqlash',
-        #     message=(
-        #         f"Assalomu alaykum!\n\n"
-        #         f"Tasdiqlash kodi: {code}\n\n"
-        #         f"Kod 5 daqiqa amal qiladi.\n\n"
-        #         f"Hurmat bilan,\nHR Project jamoasi"
-        #     ),
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     recipient_list=[email],
-        #     fail_silently=False,
-        # )
-        resend.api_key = settings.RESEND_API_KEY
-
-        resend.Emails.send({
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": [email],
-            "subject": "HR Project — Email Tasdiqlash",
-            "html": f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-
-                <h2 style="color:#2563eb; text-align:center;">
-                    HR Project
-                </h2>
-
-                <p>Assalomu alaykum!</p>
-
-                <p>Email manzilingizni tasdiqlash uchun quyidagi koddan foydalaning:</p>
-
-                <div style="
-                    text-align:center;
-                    margin:30px 0;
-                ">
-                    <span style="
-                        display:inline-block;
-                        padding:15px 35px;
-                        font-size:42px;
-                        font-weight:bold;
-                        letter-spacing:6px;
-                        background:#f3f4f6;
-                        border-radius:10px;
-                        color:#111827;
-                    ">
-                        {code}
-                    </span>
-                </div>
-
-                <p><b>Kod 5 daqiqa amal qiladi.</b></p>
-
-                <p>
-                    Agar bu so'rovni siz yubormagan bo'lsangiz,
-                    ushbu xabarni e'tiborsiz qoldiring.
-                </p>
-
-                <br>
-
-                <p>
-                    Hurmat bilan,<br>
-                    <b>HR Project jamoasi</b>
-                </p>
-
-            </div>
-            """,
-        })
+        try:
+            send_verification_email(email, code)
+        except Exception as e:
+            logger.error(f"Email yuborishda xato: {e}")
+            verification.delete()
+            raise serializers.ValidationError(
+                {"email": "Email yuborishda xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring."}
+            )
         return verification
 
 
@@ -228,70 +174,14 @@ class EmailOrganizationRegisterSerializer(serializers.Serializer):
         )
 
 
-        # send_mail(
-        #     subject='HR Project — Email Tasdiqlash',
-        #     message=(
-        #         f"Assalomu alaykum!\n\n"
-        #         f"Tasdiqlash kodi: {code}\n\n"
-        #         f"Kod 5 daqiqa amal qiladi.\n\n"
-        #         f"Hurmat bilan,\nHR Project jamoasi"
-        #     ),
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     recipient_list=[email],
-        #     fail_silently=False,
-        # )
-        resend.api_key = settings.RESEND_API_KEY
-
-        resend.Emails.send({
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": [email],
-            "subject": "HR Project — Email Tasdiqlash",
-            "html": f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            
-                <h2 style="color:#2563eb; text-align:center;">
-                    HR Project
-                </h2>
-            
-                <p>Assalomu alaykum!</p>
-            
-                <p>Email manzilingizni tasdiqlash uchun quyidagi koddan foydalaning:</p>
-            
-                <div style="
-                    text-align:center;
-                    margin:30px 0;
-                ">
-                    <span style="
-                        display:inline-block;
-                        padding:15px 35px;
-                        font-size:42px;
-                        font-weight:bold;
-                        letter-spacing:6px;
-                        background:#f3f4f6;
-                        border-radius:10px;
-                        color:#111827;
-                    ">
-                        {code}
-                    </span>
-                </div>
-            
-                <p><b>Kod 5 daqiqa amal qiladi.</b></p>
-            
-                <p>
-                    Agar bu so'rovni siz yubormagan bo'lsangiz,
-                    ushbu xabarni e'tiborsiz qoldiring.
-                </p>
-            
-                <br>
-            
-                <p>
-                    Hurmat bilan,<br>
-                    <b>HR Project jamoasi</b>
-                </p>
-            
-            </div>
-            """,
-            })
+        try:
+            send_verification_email(email, code)
+        except Exception as e:
+            logger.error(f"Email yuborishda xato: {e}")
+            verification.delete()
+            raise serializers.ValidationError(
+                {"email": "Email yuborishda xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring."}
+            )
         return verification
 
 
@@ -383,68 +273,12 @@ class ResendEmailCodeSerializer(serializers.Serializer):
             position=last.position,
         )
 
-        # send_mail(
-        #     subject='HR Project — Yangi Tasdiqlash Kodi',
-        #     message=(
-        #         f"Assalomu alaykum!\n\n"
-        #         f"Yangi tasdiqlash kodi: {code}\n\n"
-        #         f"Kod 5 daqiqa amal qiladi.\n\n"
-        #         f"Hurmat bilan,\nHR Project jamoasi"
-        #     ),
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     recipient_list=[email],
-        #     fail_silently=False,
-        # )
-        resend.api_key = settings.RESEND_API_KEY
-
-        resend.Emails.send({
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": [email],
-            "subject": "HR Project — Email Tasdiqlash",
-            "html": f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            
-                <h2 style="color:#2563eb; text-align:center;">
-                    HR Project
-                </h2>
-            
-                <p>Assalomu alaykum!</p>
-            
-                <p>Email manzilingizni tasdiqlash uchun quyidagi koddan foydalaning:</p>
-            
-                <div style="
-                    text-align:center;
-                    margin:30px 0;
-                ">
-                    <span style="
-                        display:inline-block;
-                        padding:15px 35px;
-                        font-size:42px;
-                        font-weight:bold;
-                        letter-spacing:6px;
-                        background:#f3f4f6;
-                        border-radius:10px;
-                        color:#111827;
-                    ">
-                        {code}
-                    </span>
-                </div>
-            
-                <p><b>Kod 5 daqiqa amal qiladi.</b></p>
-            
-                <p>
-                    Agar bu so'rovni siz yubormagan bo'lsangiz,
-                    ushbu xabarni e'tiborsiz qoldiring.
-                </p>
-            
-                <br>
-            
-                <p>
-                    Hurmat bilan,<br>
-                    <b>HR Project jamoasi</b>
-                </p>
-            
-            </div>
-            """,
-        })
+        try:
+            send_verification_email(email, code)
+        except Exception as e:
+            logger.error(f"Email yuborishda xato: {e}")
+            verification.delete()
+            raise serializers.ValidationError(
+                {"email": "Email yuborishda xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring."}
+            )
         return verification
