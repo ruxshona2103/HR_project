@@ -6,7 +6,7 @@
 #   redis         — Channels layer (WebSocket / AI Interview) uchun
 #   web           — Django + Daphne (ASGI, HTTP va WebSocket)
 #   bot_auth      — apps/users1/bot.py (Telegram OTP/login boti)
-#   bot_vacancy   — vacansy_bot/bot.py (HR vakansiya boti)
+#   bot_vacancy   — vacancy_bot/bot.py (HR vakansiya boti)
 #   nginx         — reverse proxy, static/media, SSL termination
 # ============================================================
 
@@ -102,7 +102,7 @@ services:
       dockerfile: Dockerfile
     image: ghcr.io/ruxshona2103/hr_project_bot_vacancy:latest
     restart: unless-stopped
-    command: python vacansy_bot/bot.py
+    command: python vacancy_bot/bot.py
     env_file:
       - .env
     environment:

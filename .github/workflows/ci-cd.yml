@@ -13,8 +13,7 @@ permissions:
   contents: read
   packages: write
 
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
 
 jobs:
 
@@ -75,10 +74,10 @@ jobs:
       - name: Kodni olish
         uses: actions/checkout@v4
 
-      - name: Python 3.12 o'rnatish
+      - name: Python 3.11 o'rnatish
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
           cache: "pip"
 
       - name: Bog'liqliklarni o'rnatish
@@ -125,7 +124,7 @@ jobs:
 
   # 2) BUILD & PUSH — faqat testlar o'tgach, faqat main'ga push bo'lsa
   build-and-push:
-    name: Docker image qurish va GHCR'ga yuborish
+    name: Docker imagelarni qurish va GHCR'ga yuborish
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -144,22 +143,63 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Image metadata (tag'lar)
-        id: meta
+      # 1-IMAGE: WEB
+      - name: Web Image metadata
+        id: meta-web
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ghcr.io/${{ github.repository_owner }}/hr_project_web
           tags: |
             type=raw,value=latest
             type=sha,prefix=sha-,format=short
 
-      - name: Build va push
+      - name: Web Image Build va Push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 2-IMAGE: BOT AUTH
+      - name: Bot Auth Image metadata
+        id: meta-bot-auth
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/hr_project_bot_auth
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Bot Auth Image Build va Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta-bot-auth.outputs.tags }}
+          labels: ${{ steps.meta-bot-auth.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 3-IMAGE: BOT VACANCY
+      - name: Bot Vacancy Image metadata
+        id: meta-bot-vacancy
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/hr_project_bot_vacancy
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Bot Vacancy Image Build va Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta-bot-vacancy.outputs.tags }}
+          labels: ${{ steps.meta-bot-vacancy.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 # ─── Muhit o'zgaruvchilari ────────────────────────────────────────────────────
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN_2", "")
 PLATFORM_URL = os.getenv("PLATFORM_URL", "http://127.0.0.1:8000").rstrip("/")
-BOT_USERNAME = os.getenv("BOT_USERNAME", "hr_mock_bot")
+BOT_USERNAME = os.getenv("BOT_USERNAME_2", "")
 
 # ─── ConversationHandler holatlari ───────────────────────────────────────────
 (
@@ -1152,10 +1152,12 @@ def run_bot():
     app.add_handler(CommandHandler("vacancies", cmd_vacancies))
     app.add_handler(CommandHandler("ai_interview", cmd_ai_interview))
     app.add_handler(CommandHandler("my_vacancies", cmd_my_vacancies))
+    app.add_handler(CommandHandler("cancel", cmd_cancel))
 
     # Menyudan bosish uchun MessageHandlerlar
     app.add_handler(MessageHandler(filters.Regex(f"^{BTN_MY_VACANCIES}$"), cmd_my_vacancies))
     app.add_handler(MessageHandler(filters.Regex(f"^{BTN_AI_INTERVIEW}$"), cmd_ai_interview))
+    app.add_handler(MessageHandler(filters.Regex(f"^{BTN_CANCEL}$"), cmd_cancel))
 
     # Noaniq xabarlar
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown_message))
