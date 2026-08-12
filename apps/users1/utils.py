@@ -1,10 +1,5 @@
-import logging
 import resend
 from django.conf import settings
-from rest_framework import serializers
-
-logger = logging.getLogger(__name__)
-
 
 def send_verification_email(email: str, code: str):
     """
@@ -42,16 +37,11 @@ def send_verification_email(email: str, code: str):
     </div>
     """
 
-    try:
-        resend.api_key = settings.RESEND_API_KEY
-        resend.Emails.send({
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": [email],
-            "subject": "HR Project — Email Tasdiqlash",
-            "html": html_content,
-        })
-    except Exception as e:
-        logger.error(f"Email yuborishda xato ({email}): {e}")
-        raise serializers.ValidationError(
-            {"email": "Email yuborishda xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring."}
-        )
+
+    resend.api_key = settings.RESEND_API_KEY
+    resend.Emails.send({
+        "from": settings.DEFAULT_FROM_EMAIL,
+        "to": [email],
+        "subject": "HR Project — Email Tasdiqlash",
+        "html": html_content,
+    })
