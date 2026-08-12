@@ -212,14 +212,6 @@ class TelegramConnectViewTest(TestCase):
         response = self.client.get(url, {"token": "expired123", "chat_id": "555"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_post_connect_without_token_row(self):
-        """Token DBda bo'lmasa ham chat_id foydalanuvchiga yoziladi"""
-        url = reverse('users1:telegram-connect')
-        response = self.client.post(url, {"token": "whatever", "chat_id": "999"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.chat_id, "999")
-
     def test_post_connect_with_valid_token(self):
         TelegramLinkToken.objects.create(
             token="tok1",
@@ -236,16 +228,38 @@ class TelegramConnectViewTest(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.chat_id, "111")
 
-    def test_post_connect_releases_chat_id_from_other_user(self):
-        """chat_id boshqa userda bo'lsa — undan tozalanadi"""
-        other = User.objects.create(email="other@gmail.com", chat_id="222", user_type="candidate")
+    def test_post_connect_without_token_row(self):
+        """Token DBda bo'lmasa 400 Bad Request qaytarishi va chat_id saqlanmasligi kerak"""
         url = reverse('users1:telegram-connect')
-        response = self.client.post(url, {"token": "x", "chat_id": "222"})
+        self.client.force_authenticate(user=self.user)
+
+        data = {"token": "non_existent_fake_token", "chat_id": "999888777"}
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.chat_id, "999888777")
+
+    def test_post_connect_releases_chat_id_from_other_user(self):
+        """chat_id boshqa userda bo'lsa — haqiqiy token bilan bog'langanda boshqasidan tozalanadi"""
+        other_user = User.objects.create(email="other@gmail.com", chat_id="222", user_type="candidate")
+
+        token_obj = TelegramLinkToken.objects.create(
+            token="valid_test_token_123",
+            expires_at=timezone.now() + timedelta(minutes=10),
+            is_used=False
+        )
+
+        url = reverse('users1:telegram-connect')
+        self.client.force_authenticate(user=self.user)
+
+        data = {"token": "valid_test_token_123", "chat_id": "222"}
+        response = self.client.post(url, data, format="json")
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        other.refresh_from_db()
-        self.assertIsNone(other.chat_id)
-
+        other_user.refresh_from_db()
+        self.assertIsNone(other_user.chat_id)
         self.user.refresh_from_db()
         self.assertEqual(self.user.chat_id, "222")
 
