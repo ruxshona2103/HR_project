@@ -137,7 +137,7 @@ python manage.py runserver
 Telegram botlarni alohida, mustaqil process sifatida ishga tushiring (Django serverdan mustaqil):
 ```bash
 python apps/users1/bot.py        # OTP / autentifikatsiya boti
-python vacansy_bot/bot.py        # HR / vakansiya boti
+python vacancy_bot/bot.py        # HR / vakansiya boti
 ```
 
 ---
@@ -330,7 +330,7 @@ hr-project/
 │   ├── resume/            # Rezyume
 │   └── ai_engine/         # AI resume-check + WebSocket intervyu
 ├── config/                # Django sozlamalari, urls, asgi/wsgi, middleware
-├── vacansy_bot/           # HR Telegram boti
+├── vacancy_bot/           # HR Telegram boti
 ├── Dockerfile / docker-compose.yml / nginx.conf
 ├── README.md              # Loyiha haqida ma'lumot
 └── requirements.txt

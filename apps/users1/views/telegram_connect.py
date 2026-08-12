@@ -123,20 +123,25 @@ class TelegramConnectView(APIView):
 
         try:
             with transaction.atomic():
-                User.objects.filter(chat_id=chat_id).exclude(id=request.user.id).update(chat_id=None)
-
                 token_obj = TelegramLinkToken.objects.filter(token=token_str).first()
 
-                if token_obj:
-                    if token_obj.is_used or (hasattr(token_obj, 'is_valid') and not token_obj.is_valid()):
-                        return Response(
-                            {"error": "Token yaroqsiz yoki muddati tugagan."},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
+                if not token_obj:
+                    return Response(
+                        {"error": "Yaroqsiz yoki topilmagan token."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
-                    token_obj.user = request.user
-                    token_obj.is_used = True
-                    token_obj.save(update_fields=["user", "is_used"])
+                if token_obj.is_used or (hasattr(token_obj, 'is_valid') and not token_obj.is_valid()):
+                    return Response(
+                        {"error": "Token yaroqsiz yoki muddati tugagan."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                User.objects.filter(chat_id=chat_id).exclude(id=request.user.id).update(chat_id=None)
+
+                token_obj.user = request.user
+                token_obj.is_used = True
+                token_obj.save(update_fields=["user", "is_used"])
 
                 request.user.chat_id = chat_id
                 request.user.save(update_fields=["chat_id"])

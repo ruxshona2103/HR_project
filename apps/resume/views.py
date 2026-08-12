@@ -104,43 +104,6 @@ class ResumeView(APIView):
         resume = get_object_or_404(Resume, foydalanuvchi=request.user)
         return Response(ResumeSerializer(resume).data)
 
-    # def post(self, request):
-    #     if Resume.objects.filter(foydalanuvchi=request.user).exists():
-    #         return Response(
-    #             {'xato': 'Resume allaqachon mavjud. PUT orqali yangilang.'},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-    #     resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
-    #     resume_serializer = ResumeSerializer(data=resume_data)
-    #     if not resume_serializer.is_valid():
-    #         return Response(resume_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     resume = resume_serializer.save(foydalanuvchi=request.user)
-    #
-    #     aloqa_data = request.data.get('aloqa')
-    #     if aloqa_data:
-    #         aloqa_serializer = AloqaSerializer(data=aloqa_data)
-    #         if aloqa_serializer.is_valid():
-    #             aloqa_serializer.save(resume=resume)
-    #
-    #     return Response(ResumeSerializer(resume).data, status=status.HTTP_201_CREATED)
-    #
-    # def put(self, request):
-    #     resume = get_object_or_404(Resume, foydalanuvchi=request.user)
-    #     resume_data = {k: v for k, v in request.data.items() if k != 'aloqa'}
-    #     if resume_data:
-    #         resume_serializer = ResumeSerializer(resume, data=resume_data, partial=True)
-    #         if not resume_serializer.is_valid():
-    #             return Response(resume_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #         resume_serializer.save()
-    #
-    #     aloqa_data = request.data.get('aloqa')
-    #     if aloqa_data:
-    #         aloqa, _ = Aloqa.objects.get_or_create(resume=resume)
-    #         aloqa_serializer = AloqaSerializer(aloqa, data=aloqa_data, partial=True)
-    #         if aloqa_serializer.is_valid():
-    #             aloqa_serializer.save()
-    #
-    #     return Response(ResumeSerializer(resume).data)
     def post(self, request):
         if Resume.objects.filter(foydalanuvchi=request.user).exists():
             return Response(
