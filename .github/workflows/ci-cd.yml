@@ -90,8 +90,7 @@ jobs:
         run: |
           python manage.py makemigrations --check --dry-run
         # Bu qadam: agar kimdir models.py o'zgartirib, migratsiya yaratishni
-        # unutgan bo'lsa — shu yerda darhol ushlanadi (loyihada avval aynan
-        # shu turdagi xato bo'lgan: Vacancy.company maydoni misolida).
+        # unutgan bo'lsa — shu yerda darhol ushlanadi
 
       - name: Django konfiguratsiyasini tekshirish
         run: python manage.py check

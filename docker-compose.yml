@@ -138,7 +138,7 @@ services:
     volumes:
       - certbot_www:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
-    entrypoint: "true"  # avtomatik ishga tushmaydi — pastdagi qo'llanmaga qarang
+    entrypoint: "true"
 
 volumes:
   postgres_data:

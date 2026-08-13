@@ -7,7 +7,6 @@ set -e
 # migratsiya/collectstatic bajariladi — botlar buni takrorlamaydi.
 # ============================================================
 
-# --- PostgreSQL tayyor bo'lishini kutish ---
 # docker-compose "depends_on: condition: service_healthy" allaqachon
 # buni ta'minlaydi, lekin qo'shimcha xavfsizlik chegarasi sifatida
 # (masalan Postgres "healthy" deb belgilangandan keyin ham bir necha
